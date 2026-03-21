@@ -1,35 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
+/*   colors.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/19 17:51:20 by zsonie            #+#    #+#             */
-/*   Updated: 2026/03/20 22:04:13 by zsonie           ###   ########lyon.fr   */
+/*   Created: 2026/01/07 00:40:24 by zsonie            #+#    #+#             */
+/*   Updated: 2026/03/19 17:52:25 by zsonie           ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef SERVER_HPP
-# define SERVER_HPP
+#ifndef COLORS_HPP
+# define COLORS_HPP
 
-#include <iostream>
-#include <string>
-#include "colors.hpp"
+#ifndef DEBUG_MODE
+# define DEBUG_MODE 0
+#endif
 
-class Server
-{
-public:
-    Server();
-    Server(std::string name);
-    Server(const Server &copy);
-    Server &operator=(const Server &copy);
-    ~Server();
-
-    std::string getName();
-    int        connect();
-private:
-    std::string    _name;
-};
+#define RESET "\033[0m"
+#define RED "\033[31m"
+#define GREEN "\033[32m"
+#define YELLOW "\033[33m"
+#define BLUE "\033[34m"
+#define MAGENTA "\033[35m"
+#define CYAN "\033[36m"
 
 #endif
