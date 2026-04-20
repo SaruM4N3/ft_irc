@@ -1,4 +1,7 @@
 .vscode
+.resources
 obj
 ircserv
 en.subject.pdf
+compile_commands.json
+debug.log

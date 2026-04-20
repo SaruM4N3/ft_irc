@@ -5,7 +5,7 @@ DIR_OBJ = obj/
 SRC_DIR = src/
 INC_DIR = inc/
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -MP
 INCLUDES = -I $(INC_DIR)
 
 SRCS =
@@ -101,5 +101,9 @@ fclean: clean
 .PHONY: re
 re: fclean
 re: all
+
+.PHONY: debug
+debug: CXXFLAGS += -DDEBUG_MODE=1
+debug: all
 
 .DEFAULT_GOAL = all

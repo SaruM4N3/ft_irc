@@ -1,2 +1,4 @@
 # Auto-generated file, do not edit!
-SRCS +=
+SRCS += src/Client.cpp \
+src/main.cpp \
+src/Server.cpp
