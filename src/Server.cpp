@@ -6,7 +6,7 @@
 /*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:15 by zsonie            #+#    #+#             */
-/*   Updated: 2026/04/21 16:39:46 by zsonie           ###   ########.fr       */
+/*   Updated: 2026/04/21 20:08:37 by zsonie           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,10 @@
 #include <fcntl.h>
 #include "Debug.hpp"
 
-// Constructor/Destructor
+//--------------------Constructor/Destructor---------------------------
 Server::Server(int port, const std::string& password)
-	: _port(port), _password(password) {
-	LOG_I("Constructor: Parameterized Server");
+	: _port(port), _password(password), _serverFd(-1), _epFd(-1) {
+	LOG_I("Constructor Server");
 	LOG_W("Port: " + toString(_port));
 	LOG_W("Password: " + _password);
 	init();
@@ -29,12 +29,12 @@ Server::Server(int port, const std::string& password)
 Server::~Server() {
 	LOG_I("Destructor: Server");
 	// close every existing client
-    for (std::map<int, Client*>::iterator it = _clientMap.begin();
+	for (std::map<int, Client*>::iterator it = _clientMap.begin();
 		 it != _clientMap.end(); ++it) {
 		close(it->first);
 		delete it->second;
 	}
-    // only close when exist
+	// only close when exist
 	if (_serverFd != -1) close(_serverFd);
 	if (_epFd != -1) close(_epFd);
 }
@@ -43,7 +43,7 @@ Server::~Server() {
 
 //---------------SERVER--------------
 
-//start the server
+// start the server
 void Server::init() {
 	LOG_I("Server init");
 	// socketcreation
@@ -81,7 +81,7 @@ void Server::init() {
 	epollAdd(_serverFd, EPOLLIN);
 }
 
-//the server routine
+// the server routine
 void Server::update() {
 	struct epoll_event events[MAX_EVENTS];
 
@@ -115,7 +115,7 @@ void Server::acceptClient() {
 	setNonBlocking(clientFd);
 	epollAdd(clientFd, EPOLLIN);
 	_clientMap[clientFd] = new Client(clientFd, clientAddr);
-	LOG_D("New client connected: fd=" + toString(clientFd));
+	LOG_W("New client connected: fd=" + toString(clientFd));
 }
 
 void Server::handleClient(int fd) {
@@ -125,7 +125,11 @@ void Server::handleClient(int fd) {
 		removeClient(fd);
 		return;
 	}
-	_clientMap[fd]->appendToBuffer(std::string(buf, bytes));
+	Client* client = _clientMap[fd];
+	client->appendToBuffer(std::string(buf, bytes));
+
+	while (_clientMap.count(fd) && client->isMessageReceived())
+		processMessage(*client, client->extractMessage());
 	LOG_D("Received data from fd=" + toString(fd));
 }
 
@@ -158,9 +162,9 @@ void Server::epollDel(int fd) {
 
 //----------------------UTILS-----------------------
 
-// Add nonblocking flag 
+// Add nonblocking flag
 void Server::setNonBlocking(int fd) {
-    LOG_D("Server: setNonblocking called");
+	LOG_D("Server: setNonblocking called");
 	int flags = fcntl(fd, F_GETFL, 0);
 	if (flags == -1)
 		throw std::runtime_error("fcntl F_GETFL: " +
@@ -168,4 +172,65 @@ void Server::setNonBlocking(int fd) {
 	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
 		throw std::runtime_error("fcntl F_SETFL: " +
 								 std::string(strerror(errno)));
+}
+
+//----------------------MESSAGES---------------------------
+
+void Server::processMessage(Client& client, const std::string& msg) {
+	// check empty
+	if (msg.empty()) return;
+
+	// cmd extract
+	std::string cmd = msg.substr(0, msg.find(' '));
+
+	// param extract
+	std::string params;
+	size_t spacePos = msg.find(' ');
+	if (spacePos != std::string::npos) params = msg.substr(spacePos + 1);
+
+	//handleCmds
+	LOG_I("CMD=[" + cmd + "] PARAMS=[" + params + "]");
+	if (cmd == "PASS")
+		handlePass(client, params);
+	else if (!client.isAuthenticated()) {
+		sendToClient(client,
+					 "Error: You must send PASS before any other actions\r\n");
+		return;
+	} else if (cmd == "NICK")
+		handleNickname(client, params);
+	else if (cmd == "USER")
+		handleUsername(client, params);
+}
+
+void Server::sendToClient(Client& client, const std::string& msg) {
+	send(client.getFd(), msg.c_str(), msg.size(), 0);
+}
+
+//----------------------------CMDS---------------------------------
+
+void Server::handlePass(Client& client, const std::string& param) {
+	if (param == _password) {
+		client.setAuthenticated(true);
+		LOG_W("Client on fd[" + toString(client.getFd()) +
+			  "]: Connected succesfully");
+	} else {
+		sendToClient(client, "Wrong password\r\n");
+		LOG_W("Client on fd[" + toString(client.getFd()) +
+			  "]: Failed to connect");
+		LOG_E("Removing client");
+		removeClient(client.getFd());
+		return;
+	}
+}
+
+void Server::handleNickname(Client& client, const std::string& param) {
+	client.setNickname(param);
+}
+
+void Server::handleUsername(Client& client, const std::string& param) {
+	client.setUsername(param);
+	if (!client.getNickname().empty()) {
+        client.setRegistered(true);
+        sendToClient(client, ":ircserv 001 " + client.getNickname() + " :Welcome to the IRC server\r\n");
+    }
 }

@@ -6,7 +6,7 @@
 /*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/07 00:40:24 by zsonie            #+#    #+#             */
-/*   Updated: 2026/04/20 21:25:52 by zsonie           ###   ########.fr       */
+/*   Updated: 2026/04/21 18:37:08 by zsonie           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ class Logger {
    private:
 	std::ofstream _file;
 
-	Logger() { _file.open("debug.log", std::ios::out | std::ios::app); }
+	Logger() { _file.open("debug.log", std::ios::out | std::ios::trunc); }
 	~Logger() {
 		if (_file.is_open()) _file.close();
 	}

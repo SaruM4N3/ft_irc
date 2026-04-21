@@ -96,11 +96,9 @@ clean:
 .PHONY: fclean
 fclean: clean
 	rm -f $(NAME)
-	printf '# Auto-generated file, do not edit!\nSRCS +=\n' > srcs.mk
 
 .PHONY: re
-re: fclean
-re: all
+re: fclean all
 
 .PHONY: debug
 debug: CXXFLAGS += -DDEBUG_MODE=1
