@@ -6,7 +6,7 @@
 /*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:15 by zsonie            #+#    #+#             */
-/*   Updated: 2026/04/21 20:08:37 by zsonie           ###   ########.fr       */
+/*   Updated: 2026/04/21 20:27:31 by zsonie           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,7 +188,7 @@ void Server::processMessage(Client& client, const std::string& msg) {
 	size_t spacePos = msg.find(' ');
 	if (spacePos != std::string::npos) params = msg.substr(spacePos + 1);
 
-	//handleCmds
+	// handleCmds
 	LOG_I("CMD=[" + cmd + "] PARAMS=[" + params + "]");
 	if (cmd == "PASS")
 		handlePass(client, params);
@@ -225,12 +225,18 @@ void Server::handlePass(Client& client, const std::string& param) {
 
 void Server::handleNickname(Client& client, const std::string& param) {
 	client.setNickname(param);
+	if (!client.getUsername().empty()) {
+		client.setRegistered(true);
+		sendToClient(client, ":ircserv 001 " + client.getNickname() +
+								 " :Welcome to the IRC server\r\n");
+	}
 }
 
 void Server::handleUsername(Client& client, const std::string& param) {
 	client.setUsername(param);
 	if (!client.getNickname().empty()) {
-        client.setRegistered(true);
-        sendToClient(client, ":ircserv 001 " + client.getNickname() + " :Welcome to the IRC server\r\n");
-    }
+		client.setRegistered(true);
+		sendToClient(client, ":ircserv 001 " + client.getNickname() +
+								 " :Welcome to the IRC server\r\n");
+	}
 }
