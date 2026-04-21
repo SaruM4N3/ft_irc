@@ -6,7 +6,7 @@
 /*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/14 14:33:22 by zsonie            #+#    #+#             */
-/*   Updated: 2026/04/20 21:31:23 by zsonie           ###   ########.fr       */
+/*   Updated: 2026/04/21 17:12:58 by zsonie           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,9 @@ public:
 
     void appendToBuffer(const std::string& data);
     int getFd() const;
+
+    bool isMessageReceived() const;
+    std::string extractMessage();
     
 private:
     int _fd;
