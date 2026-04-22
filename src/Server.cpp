@@ -6,7 +6,7 @@
 /*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:15 by zsonie            #+#    #+#             */
-/*   Updated: 2026/04/21 20:27:31 by zsonie           ###   ########.fr       */
+/*   Updated: 2026/04/22 01:48:46 by zsonie           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,21 +20,20 @@
 //--------------------Constructor/Destructor---------------------------
 Server::Server(int port, const std::string& password)
 	: _port(port), _password(password), _serverFd(-1), _epFd(-1) {
-	LOG_I("Constructor Server");
-	LOG_W("Port: " + toString(_port));
-	LOG_W("Password: " + _password);
+	LOG_I("Constructor: Server");
+	LOG_D("Port: " + toString(_port) + " Password: " + _password);
 	init();
 }
 
 Server::~Server() {
 	LOG_I("Destructor: Server");
-	// close every existing client
+	// Close every existing client
 	for (std::map<int, Client*>::iterator it = _clientMap.begin();
 		 it != _clientMap.end(); ++it) {
 		close(it->first);
 		delete it->second;
 	}
-	// only close when exist
+	// Only close when exist (in case error on initialisation)
 	if (_serverFd != -1) close(_serverFd);
 	if (_epFd != -1) close(_epFd);
 }
@@ -43,10 +42,10 @@ Server::~Server() {
 
 //---------------SERVER--------------
 
-// start the server
+// Server Init
 void Server::init() {
-	LOG_I("Server init");
-	// socketcreation
+	LOG_I("Server initialisation");
+	// Socketcreation
 	_serverFd = socket(AF_INET, SOCK_STREAM, 0);
 	if (_serverFd == -1)
 		throw std::runtime_error("socket: " +
@@ -74,14 +73,14 @@ void Server::init() {
 								 std::string(std::strerror(errno)));
 	setNonBlocking(_serverFd);
 
-	// epoll instantiation
+	// Epoll instantiation
 	_epFd = epoll_create1(0);
 	if (_epFd == -1)
 		throw std::runtime_error("epoll: " + std::string(std::strerror(errno)));
 	epollAdd(_serverFd, EPOLLIN);
 }
 
-// the server routine
+// Server routine
 void Server::update() {
 	struct epoll_event events[MAX_EVENTS];
 
@@ -106,6 +105,7 @@ void Server::update() {
 }
 
 //----------------CLIENTS------------------
+
 void Server::acceptClient() {
 	struct sockaddr_in clientAddr;
 	socklen_t len = sizeof(clientAddr);
@@ -115,7 +115,7 @@ void Server::acceptClient() {
 	setNonBlocking(clientFd);
 	epollAdd(clientFd, EPOLLIN);
 	_clientMap[clientFd] = new Client(clientFd, clientAddr);
-	LOG_W("New client connected: fd=" + toString(clientFd));
+	LOG_W("New client connected: fd[" + toString(clientFd) + "]");
 }
 
 void Server::handleClient(int fd) {
@@ -130,7 +130,7 @@ void Server::handleClient(int fd) {
 
 	while (_clientMap.count(fd) && client->isMessageReceived())
 		processMessage(*client, client->extractMessage());
-	LOG_D("Received data from fd=" + toString(fd));
+	LOG_D("Received data from fd[" + toString(fd) + "]");
 }
 
 void Server::removeClient(int fd) {
@@ -138,7 +138,7 @@ void Server::removeClient(int fd) {
 	close(fd);
 	delete _clientMap[fd];
 	_clientMap.erase(fd);
-	LOG_D("Client disconnected: fd=" + toString(fd));
+	LOG_D("Client disconnected: fd[" + toString(fd) + "]");
 }
 
 //--------------------EPOLL-----------------------------
@@ -174,10 +174,23 @@ void Server::setNonBlocking(int fd) {
 								 std::string(strerror(errno)));
 }
 
+// Function name tell everything
+void Server::sendToClient(Client& client, const std::string& msg) {
+	send(client.getFd(), msg.c_str(), msg.size(), 0);
+}
+
 //----------------------MESSAGES---------------------------
 
+/**
+*	@brief Here's where all the magic happens,
+*	it does parse an IRC message to the target handler.
+*
+*	If you have any cmds to add that's where it goes!
+*	@note To add a new command, just add this
+*
+*	``` else if (cmd == "BONJOUR") handleBonjour(client, params); ```
+*/
 void Server::processMessage(Client& client, const std::string& msg) {
-	// check empty
 	if (msg.empty()) return;
 
 	// cmd extract
@@ -200,10 +213,6 @@ void Server::processMessage(Client& client, const std::string& msg) {
 		handleNickname(client, params);
 	else if (cmd == "USER")
 		handleUsername(client, params);
-}
-
-void Server::sendToClient(Client& client, const std::string& msg) {
-	send(client.getFd(), msg.c_str(), msg.size(), 0);
 }
 
 //----------------------------CMDS---------------------------------
