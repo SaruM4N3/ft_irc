@@ -6,7 +6,7 @@
 /*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:15 by zsonie            #+#    #+#             */
-/*   Updated: 2026/04/22 01:48:46 by zsonie           ###   ########.fr       */
+/*   Updated: 2026/04/23 17:06:06 by zsonie           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,9 +40,6 @@ Server::~Server() {
 
 //---------------------------Methods-------------------------------------
 
-//---------------SERVER--------------
-
-// Server Init
 void Server::init() {
 	LOG_I("Server initialisation");
 	// Socketcreation
@@ -80,7 +77,6 @@ void Server::init() {
 	epollAdd(_serverFd, EPOLLIN);
 }
 
-// Server routine
 void Server::update() {
 	struct epoll_event events[MAX_EVENTS];
 
@@ -104,7 +100,28 @@ void Server::update() {
 	}
 }
 
-//----------------CLIENTS------------------
+/////////////////////////////////////////////////////////////////////////////////
+//----------------------EPOLL---------------------------------------------------/
+/////////////////////////////////////////////////////////////////////////////////
+
+void Server::epollAdd(int fd, uint32_t events) {
+	struct epoll_event ev;
+	ev.events = events;
+	ev.data.fd = fd;
+	if (epoll_ctl(_epFd, EPOLL_CTL_ADD, fd, &ev) == -1)
+		throw std::runtime_error("epoll_ctl ADD: " +
+								 std::string(strerror(errno)));
+}
+
+void Server::epollDel(int fd) {
+	if (epoll_ctl(_epFd, EPOLL_CTL_DEL, fd, NULL) == -1)
+		throw std::runtime_error("epoll_ctl DEL: " +
+								 std::string(strerror(errno)));
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+//----------------------CLIENT--------------------------------------------------/
+/////////////////////////////////////////////////////////////////////////////////
 
 void Server::acceptClient() {
 	struct sockaddr_in clientAddr;
@@ -141,55 +158,10 @@ void Server::removeClient(int fd) {
 	LOG_D("Client disconnected: fd[" + toString(fd) + "]");
 }
 
-//--------------------EPOLL-----------------------------
+/////////////////////////////////////////////////////////////////////////////////
+//----------------------CMDS----------------------------------------------------/
+/////////////////////////////////////////////////////////////////////////////////
 
-// Add specific fd to epoll
-void Server::epollAdd(int fd, uint32_t events) {
-	struct epoll_event ev;
-	ev.events = events;
-	ev.data.fd = fd;
-	if (epoll_ctl(_epFd, EPOLL_CTL_ADD, fd, &ev) == -1)
-		throw std::runtime_error("epoll_ctl ADD: " +
-								 std::string(strerror(errno)));
-}
-
-// Delete specific fd from epoll
-void Server::epollDel(int fd) {
-	if (epoll_ctl(_epFd, EPOLL_CTL_DEL, fd, NULL) == -1)
-		throw std::runtime_error("epoll_ctl DEL: " +
-								 std::string(strerror(errno)));
-}
-
-//----------------------UTILS-----------------------
-
-// Add nonblocking flag
-void Server::setNonBlocking(int fd) {
-	LOG_D("Server: setNonblocking called");
-	int flags = fcntl(fd, F_GETFL, 0);
-	if (flags == -1)
-		throw std::runtime_error("fcntl F_GETFL: " +
-								 std::string(strerror(errno)));
-	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
-		throw std::runtime_error("fcntl F_SETFL: " +
-								 std::string(strerror(errno)));
-}
-
-// Function name tell everything
-void Server::sendToClient(Client& client, const std::string& msg) {
-	send(client.getFd(), msg.c_str(), msg.size(), 0);
-}
-
-//----------------------MESSAGES---------------------------
-
-/**
-*	@brief Here's where all the magic happens,
-*	it does parse an IRC message to the target handler.
-*
-*	If you have any cmds to add that's where it goes!
-*	@note To add a new command, just add this
-*
-*	``` else if (cmd == "BONJOUR") handleBonjour(client, params); ```
-*/
 void Server::processMessage(Client& client, const std::string& msg) {
 	if (msg.empty()) return;
 
@@ -214,8 +186,6 @@ void Server::processMessage(Client& client, const std::string& msg) {
 	else if (cmd == "USER")
 		handleUsername(client, params);
 }
-
-//----------------------------CMDS---------------------------------
 
 void Server::handlePass(Client& client, const std::string& param) {
 	if (param == _password) {
@@ -248,4 +218,23 @@ void Server::handleUsername(Client& client, const std::string& param) {
 		sendToClient(client, ":ircserv 001 " + client.getNickname() +
 								 " :Welcome to the IRC server\r\n");
 	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+//----------------------UTILS---------------------------------------------------/
+/////////////////////////////////////////////////////////////////////////////////
+
+void Server::setNonBlocking(int fd) {
+	LOG_D("Server: setNonblocking called");
+	int flags = fcntl(fd, F_GETFL, 0);
+	if (flags == -1)
+		throw std::runtime_error("fcntl F_GETFL: " +
+								 std::string(strerror(errno)));
+	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
+		throw std::runtime_error("fcntl F_SETFL: " +
+								 std::string(strerror(errno)));
+}
+
+void Server::sendToClient(Client& client, const std::string& msg) {
+	send(client.getFd(), msg.c_str(), msg.size(), 0);
 }
