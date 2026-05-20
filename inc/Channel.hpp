@@ -1,0 +1,60 @@
+# ifndef CHANNEL_HPP
+# define CHANNEL_HPP
+
+#include "Client.hpp"
+# include <string>
+# include <map>
+# include <vector>
+# include <set>
+
+class Channel {
+    public:
+        // Only needs a name to be created
+        Channel(){};
+        Channel(const std::string &name);
+        ~Channel();
+
+        // Membership
+        void    addMember(Client *client, bool isOp);
+        void    removeMember(Client *client);
+        bool    hasMember() const;
+        bool    isOperator(Client *client) const;
+
+        // Broadcast
+        void    broadcast(const std::string &msg, Client *except, const std::string &exceptMsg );
+
+        // Getters
+        const std::string           &getName()     const;
+        const std::string           &getTopic()    const;
+        const std::string           &getPassword() const;
+        int                          getUserLimit() const;
+        bool                         isInviteOnly() const;
+        bool                         isTopicLocked() const;
+        std::map<Client*, bool>      getMemberList() const;
+
+        // Setters (called by MODE handler) 
+        void    setName(const std::string &name);
+        void    setTopic(const std::string &topic);
+        void    setPassword(const std::string &password);
+        void    setUserLimit(int limit);
+        void    setInviteOnly(bool val);
+        void    setTopicLocked(bool val);
+
+        // Invite list (for +i mode)
+        void    addInvite(const std::string &nick);
+        bool    isInvited(const std::string &nick) const;
+
+    private:
+        std::string             _name;
+        std::string             _topic;
+        std::string             _password;
+
+        std::map<Client*, bool> _members;    // client → is_operator
+        std::set<std::string>   _inviteList; // nicks invited via INVITE
+
+        bool    _inviteOnly;
+        bool    _topicLocked;
+        int     _userLimit;   // 0 = no limit
+};
+
+# endif

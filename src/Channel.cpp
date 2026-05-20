@@ -1,0 +1,119 @@
+# include "Channel.hpp"
+# include "Server.hpp"
+# include "Client.hpp"
+# include "Debug.hpp"
+
+Channel::Channel(const std::string &name)
+    : _name(name),
+      _topic(""),
+      _password(""),
+      _inviteOnly(false),
+      _topicLocked(false),
+      _userLimit(1000)
+{}
+
+Channel::~Channel(){
+}
+
+
+// --------------------------- MEMBERSHIP ------------------------------------------
+
+void Channel::addMember(Client *client, bool isOp) {
+    _members[client] = isOp;
+}
+void    Channel::removeMember(Client *client){
+    _members.erase(client);
+}
+
+bool    Channel::hasMember() const {
+    return (_members.size());
+}
+
+bool    Channel::isOperator(Client *client) const {
+
+    std::map<Client*, bool>::const_iterator it = _members.find(client);
+    
+    if (it == _members.end()) {
+        return (false);
+    }
+    return (it->second);
+}
+
+// --------------------------- BROADCAST ------------------------------------------
+
+void Channel::broadcast(const std::string &msg, Client *except, const std::string &exceptMsg ){
+
+    std::map<Client*, bool>::const_iterator itExcept = _members.find(except);
+    for (std::map<Client*, bool>::const_iterator it = _members.begin(); it != _members.end(); it++){
+        LOG_I(it->first->getUsername());
+        if (it->first->getUsername() != itExcept->first->getUsername())    
+            send(it->first->getFd(), msg.c_str(), msg.size(), 0);
+        else
+            send(it->first->getFd(), exceptMsg.c_str(), exceptMsg.size(), 0);
+        }
+}
+
+// --------------------------- GETTERS ------------------------------------------
+
+const std::string   &Channel::getName()     const{
+    return(this->_name);
+}
+
+const std::string   &Channel::getTopic()    const{
+    return(this->_topic);
+}
+
+const std::string   &Channel::getPassword() const{
+    return(this->_password);
+}
+
+int                  Channel::getUserLimit() const{
+    return (this->_userLimit);
+}
+
+bool                 Channel::isInviteOnly() const{
+    return (this->_inviteOnly);
+}
+
+bool                 Channel::isTopicLocked() const{
+    return (this->_topicLocked);
+}
+
+std::map<Client*, bool>          Channel::getMemberList() const{
+    return (this->_members);
+}
+
+// --------------------------- SETTERS ------------------------------------------
+
+void Channel::setName(const std::string &name){
+    this->_name = name;
+}
+
+void    Channel::setTopic(const std::string &topic){
+    this->_topic = topic;
+}
+void    Channel::setPassword(const std::string &password){
+    this->_password = password;
+}
+void    Channel::setUserLimit(int limit){
+    this->_userLimit = limit;
+}
+void    Channel::setInviteOnly(bool val){
+    this->_inviteOnly = val;
+}
+void    Channel::setTopicLocked(bool val){
+    this->_topicLocked = val;
+}
+
+// --------------------------- INVITES ------------------------------------------
+
+void    Channel::addInvite(const std::string &nick){
+    _inviteList.insert(nick);
+}
+
+bool    Channel::isInvited(const std::string &nick) const{
+    std::set<std::string>::const_iterator it = _inviteList.find(nick);
+    if ( it != _inviteList.end())
+        return (true);
+    return (false);
+}

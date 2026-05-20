@@ -5,7 +5,7 @@ DIR_OBJ = obj/
 SRC_DIR = src/
 INC_DIR = inc/
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -MP
+CXXFLAGS = -Wall -Wextra -std=c++98 -MMD -MP
 INCLUDES = -I $(INC_DIR)
 
 SRCS =

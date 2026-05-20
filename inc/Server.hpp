@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
+/*   By: erbuffet <erbuffet@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:20 by zsonie            #+#    #+#             */
-/*   Updated: 2026/04/23 17:17:16 by zsonie           ###   ########.fr       */
+/*   Updated: 2026/04/28 21:56:27 by erbuffet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,12 @@
 
 // INC
 #include "Client.hpp"
+# include "Channel.hpp"
 #include <map>
 #include <netinet/in.h>
 #include <string>
 #include <sys/epoll.h>
+
 
 // LIMIT
 #ifndef MAX_EVENTS
@@ -106,6 +108,13 @@ class Server {
 	 */
 	void handleUsername(Client& client, const std::string& param);
 
+	void handleChannel(Client& client, const std::string& param);
+	/**
+	*	@brief Handle the joining of a channel
+	* 
+	*/
+	
+
 	/////////////////////////////////////////////////////////////////////////////////
 	//----------------------UTILS---------------------------------------------------/
 	/////////////////////////////////////////////////////////////////////////////////
@@ -124,11 +133,12 @@ class Server {
 	//----------------------VARS----------------------------------------------------/
 	/////////////////////////////////////////////////////////////////////////////////
 
-	int _port;							///< TCP port the server's gonna listen
-	std::string _password;				///< Password of the server
-	int _serverFd;						///< Listening fd
-	int _epFd;							///< Epoll fd
-	std::map<int, Client*> _clientMap;	///< Client map
+	int _port;										///< TCP port the server's gonna listen
+	std::string _password;							///< Password of the server
+	int _serverFd;									///< Listening fd
+	int _epFd;										///< Epoll fd
+	std::map<int, Client*> _clientMap;				///< Client map
+	std::map<std::string, Channel*> _channelList; 	///< list of Channel in server
 };
 
 #endif

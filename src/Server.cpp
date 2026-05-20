@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include "Channel.hpp"
 #include <unistd.h>
 #include <cstring>
 #include <string>
@@ -185,6 +186,8 @@ void Server::processMessage(Client& client, const std::string& msg) {
 		handleNickname(client, params);
 	else if (cmd == "USER")
 		handleUsername(client, params);
+	else if (cmd == "JOIN")
+		handleChannel(client, params);
 }
 
 void Server::handlePass(Client& client, const std::string& param) {
@@ -218,6 +221,26 @@ void Server::handleUsername(Client& client, const std::string& param) {
 		sendToClient(client, ":ircserv 001 " + client.getNickname() +
 								 " :Welcome to the IRC server\r\n");
 	}
+}
+
+void Server::handleChannel(Client& client, const std::string& param){
+	/* order: find if channel already exist,
+	 if not create + add client to _member,
+	 if yes add client to _members,
+	 get input from client and broadcast to all _members
+	 */
+
+	if (_channelList.find(param) == _channelList.end()){
+		_channelList[param] = new Channel(param);
+		_channelList[param]->addMember(&client, true);
+	}
+	else {
+		_channelList[param]->addMember(&client, false);
+	}
+	// broadcast: CLient joined
+	_channelList[param]->broadcast(":" + client.getNickname() + " JOIN " + param + "\r\n", &client, "");
+	// Broadcast: MSG
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////
