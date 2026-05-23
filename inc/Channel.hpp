@@ -9,7 +9,6 @@
 
 class Channel {
     public:
-        // Only needs a name to be created
         Channel(){};
         Channel(const std::string &name);
         ~Channel();
@@ -21,7 +20,8 @@ class Channel {
         bool    isOperator(Client *client) const;
 
         // Broadcast
-        void    broadcast(const std::string &msg, Client *except, const std::string &exceptMsg );
+        /** @brief send message to USER or Channel */
+        void    broadcast(const std::string &msg);
 
         // Getters
         const std::string           &getName()     const;
@@ -30,7 +30,7 @@ class Channel {
         int                          getUserLimit() const;
         bool                         isInviteOnly() const;
         bool                         isTopicLocked() const;
-        std::map<Client*, bool>      getMemberList() const;
+        std::string                  getMemberList() const;
 
         // Setters (called by MODE handler) 
         void    setName(const std::string &name);

@@ -87,7 +87,6 @@ class Server {
 	void processMessage(Client& client, const std::string& message);
 	/**
 	 *	@brief Handle the password of the client.
-
 	 *	This step is the first one called in processMessage function.
 	 *	Client have to input the correct password or he will get kicked of the
 	 server.
@@ -97,7 +96,7 @@ class Server {
 	 *	@brief Handle the Nickname of the client.
 	 *	This step is the 2nd one called in processMessage function.
 	 *	Client Should have username and nickname to get registered and be able
-	 * to interact with the server.
+	 *  to interact with the server.
 	 */
 	void handleNickname(Client& client, const std::string& param);
 	/**
@@ -107,17 +106,28 @@ class Server {
 	 * to interact with the server.
 	 */
 	void handleUsername(Client& client, const std::string& param);
-
+	/**
+	 *@brief Handle the joining of a channel
+	 *	This step come after client is identified with USER and NICK.
+	 *	Client Should have username and nickname to get registered and be able
+	 *  to interact with the channel.
+	 */
 	void handleChannel(Client& client, const std::string& param);
 	/**
-	*	@brief Handle the joining of a channel
-	* 
+	 *@brief Handle channel and private communication.
+	 *  if param == channelName => broadcast to all members of channelName
+	 *  if param == NICK => send to this USER
 	*/
-	
+	void handleCom(Client &client, const std::string& param);
 
+	
 	/////////////////////////////////////////////////////////////////////////////////
 	//----------------------UTILS---------------------------------------------------/
 	/////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * @brief utility function that loop through _clientMap to find a client
+	 */
+	Client* findClient(const std::string &nick);
 	/**
 	 *	@brief Just an utility function to send a message to the client.
 	 */
@@ -138,7 +148,7 @@ class Server {
 	int _serverFd;									///< Listening fd
 	int _epFd;										///< Epoll fd
 	std::map<int, Client*> _clientMap;				///< Client map
-	std::map<std::string, Channel*> _channelList; 	///< list of Channel in server
+	std::map<std::string, Channel> _channelList; 	///< list of Channel in server
 };
 
 #endif

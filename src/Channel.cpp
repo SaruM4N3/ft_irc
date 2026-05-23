@@ -5,11 +5,11 @@
 
 Channel::Channel(const std::string &name)
     : _name(name),
-      _topic(""),
+      _topic("UNDEFINED"),
       _password(""),
       _inviteOnly(false),
       _topicLocked(false),
-      _userLimit(1000)
+      _userLimit(100)
 {}
 
 Channel::~Channel(){
@@ -41,16 +41,12 @@ bool    Channel::isOperator(Client *client) const {
 
 // --------------------------- BROADCAST ------------------------------------------
 
-void Channel::broadcast(const std::string &msg, Client *except, const std::string &exceptMsg ){
+void Channel::broadcast(const std::string &msg){
 
-    std::map<Client*, bool>::const_iterator itExcept = _members.find(except);
     for (std::map<Client*, bool>::const_iterator it = _members.begin(); it != _members.end(); it++){
         LOG_I(it->first->getUsername());
-        if (it->first->getUsername() != itExcept->first->getUsername())    
-            send(it->first->getFd(), msg.c_str(), msg.size(), 0);
-        else
-            send(it->first->getFd(), exceptMsg.c_str(), exceptMsg.size(), 0);
-        }
+        send(it->first->getFd(), msg.c_str(), msg.size(), 0);
+    }
 }
 
 // --------------------------- GETTERS ------------------------------------------
@@ -79,8 +75,17 @@ bool                 Channel::isTopicLocked() const{
     return (this->_topicLocked);
 }
 
-std::map<Client*, bool>          Channel::getMemberList() const{
-    return (this->_members);
+std::string Channel::getMemberList() const {
+    std::string list;
+    for (std::map<Client*, bool>::const_iterator it = _members.begin();
+         it != _members.end(); it++) {
+        if (!list.empty())
+            list += " ";
+        if (it->second)        // bool = true → operator
+            list += "@";
+        list += it->first->getNickname();
+    }
+    return list;
 }
 
 // --------------------------- SETTERS ------------------------------------------

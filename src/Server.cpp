@@ -188,6 +188,8 @@ void Server::processMessage(Client& client, const std::string& msg) {
 		handleUsername(client, params);
 	else if (cmd == "JOIN")
 		handleChannel(client, params);
+	else if (cmd == "PRIVMSG")
+		handleCom(client, params);
 }
 
 void Server::handlePass(Client& client, const std::string& param) {
@@ -223,29 +225,70 @@ void Server::handleUsername(Client& client, const std::string& param) {
 	}
 }
 
+/* JOIN cmd*/
 void Server::handleChannel(Client& client, const std::string& param){
-	/* order: find if channel already exist,
-	 if not create + add client to _member,
-	 if yes add client to _members,
-	 get input from client and broadcast to all _members
-	 */
+    if (_channelList.find(param + '#') == _channelList.end()){
+        _channelList[param] = Channel(param);
+        _channelList[param].addMember(&client, true);
+    }
+    else {
+        _channelList[param].addMember(&client, false);
+    }
+    // store reference to avoid repeating _channelList[param] everywhere
+    Channel &c = _channelList[param];
 
-	if (_channelList.find(param) == _channelList.end()){
-		_channelList[param] = new Channel(param);
-		_channelList[param]->addMember(&client, true);
+    // broadcast JOIN to everyone
+    c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost JOIN " + param + "\r\n");
+
+    // send 353/366 only to the joiner
+    sendToClient(client, ":ircserv 353 " + client.getNickname() + " = " + param + " :" + c.getMemberList() + "\r\n");
+    sendToClient(client, ":ircserv 366 " + client.getNickname() + " " + param + " :End of NAMES list\r\n");
+}
+
+/* PRIVMSG cmd*/
+void Server::handleCom(Client &client, const std::string &param) {
+	
+	std::string target;
+	std::string msg;
+	
+	size_t pos = param.find(' ');
+	if ( pos == std::string::npos){
+		sendToClient(client, ":server 411 " + client.getNickname() + " :No text to send\r\n");
+		return ;
 	}
+	target 	= param.substr(0, pos);
+	msg 	= param.substr(pos + 1);
+
+	if ( target.empty() || msg.empty()){
+		sendToClient(client, ":server 411 " + client.getNickname() + " :No text to send\r\n");
+		return ;
+	}
+	
+	const std::string ircmsg = ":" + client.getNickname() + " PRIVMSG " + target + " :" + msg + "\r\n";
+	if (target[0] == '#')
+		_channelList[target].broadcast(ircmsg);
 	else {
-		_channelList[param]->addMember(&client, false);
-	}
-	// broadcast: CLient joined
-	_channelList[param]->broadcast(":" + client.getNickname() + " JOIN " + param + "\r\n", &client, "");
-	// Broadcast: MSG
-
+        Client *dest = findClient(target);
+        if (!dest) {
+            sendToClient(client, ":server 401 " + client.getNickname() + " " + target + " :No such nick\r\n");
+            return ;
+        }
+        sendToClient(*dest, ircmsg);
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////
 //----------------------UTILS---------------------------------------------------/
 /////////////////////////////////////////////////////////////////////////////////
+
+Client* Server::findClient(const std::string &nick) {
+    for (std::map<int, Client*>::iterator it = _clientMap.begin();
+         it != _clientMap.end(); it++) {
+        if (it->second->getNickname() == nick)
+            return it->second;
+    }
+    return NULL;
+}
 
 void Server::setNonBlocking(int fd) {
 	LOG_D("Server: setNonblocking called");
