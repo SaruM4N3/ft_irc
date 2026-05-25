@@ -1,7 +1,4 @@
 # include "Channel.hpp"
-# include "Server.hpp"
-# include "Client.hpp"
-# include "Debug.hpp"
 
 Channel::Channel(const std::string &name)
     : _name(name),
@@ -25,8 +22,18 @@ void    Channel::removeMember(Client *client){
     _members.erase(client);
 }
 
-bool    Channel::hasMember() const {
+bool    Channel::isEmpty() const
+{
     return (_members.size());
+}
+
+
+bool Channel::hasMember(Client *client) const
+{
+    std::map<Client*, bool>::const_iterator it = _members.find(client);
+    if (it == _members.end())
+        return false;
+    return true;
 }
 
 bool    Channel::isOperator(Client *client) const {
@@ -42,10 +49,8 @@ bool    Channel::isOperator(Client *client) const {
 // --------------------------- BROADCAST ------------------------------------------
 
 void Channel::broadcast(const std::string &msg){
-
     for (std::map<Client*, bool>::const_iterator it = _members.begin(); it != _members.end(); it++){
-        LOG_I(it->first->getUsername());
-        send(it->first->getFd(), msg.c_str(), msg.size(), 0);
+        ::send(it->first->getFd(), msg.c_str(), msg.size(), 0);
     }
 }
 
@@ -77,8 +82,7 @@ bool                 Channel::isTopicLocked() const{
 
 std::string Channel::getMemberList() const {
     std::string list;
-    for (std::map<Client*, bool>::const_iterator it = _members.begin();
-         it != _members.end(); it++) {
+    for (std::map<Client*, bool>::const_iterator it = _members.begin(); it != _members.end(); it++) {
         if (!list.empty())
             list += " ";
         if (it->second)        // bool = true → operator
@@ -93,7 +97,6 @@ std::string Channel::getMemberList() const {
 void Channel::setName(const std::string &name){
     this->_name = name;
 }
-
 void    Channel::setTopic(const std::string &topic){
     this->_topic = topic;
 }

@@ -6,7 +6,7 @@
 /*   By: erbuffet <erbuffet@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:20 by zsonie            #+#    #+#             */
-/*   Updated: 2026/04/28 21:56:27 by erbuffet         ###   ########.fr       */
+/*   Updated: 2026/05/25 05:13:40 by erbuffet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,6 +120,9 @@ class Server {
 	*/
 	void handleCom(Client &client, const std::string& param);
 
+ 	void handlePart(Client &client, const std::string &param);
+
+
 	
 	/////////////////////////////////////////////////////////////////////////////////
 	//----------------------UTILS---------------------------------------------------/
@@ -147,8 +150,8 @@ class Server {
 	std::string _password;							///< Password of the server
 	int _serverFd;									///< Listening fd
 	int _epFd;										///< Epoll fd
-	std::map<int, Client*> _clientMap;				///< Client map
-	std::map<std::string, Channel> _channelList; 	///< list of Channel in server
+	std::map<int, Client* > _clientMap;				///< Client map
+	std::map<std::string, Channel > _channelList; 	///< list of Channel in server
 };
 
 #endif

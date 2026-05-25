@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
+/*   By: erbuffet <erbuffet@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:15 by zsonie            #+#    #+#             */
-/*   Updated: 2026/04/23 17:06:06 by zsonie           ###   ########.fr       */
+/*   Updated: 2026/05/25 06:17:16 by erbuffet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -190,6 +190,8 @@ void Server::processMessage(Client& client, const std::string& msg) {
 		handleChannel(client, params);
 	else if (cmd == "PRIVMSG")
 		handleCom(client, params);
+	else if (cmd == "PART")
+		handlePart(client, params);	
 }
 
 void Server::handlePass(Client& client, const std::string& param) {
@@ -227,20 +229,22 @@ void Server::handleUsername(Client& client, const std::string& param) {
 
 /* JOIN cmd*/
 void Server::handleChannel(Client& client, const std::string& param){
-    if (_channelList.find(param + '#') == _channelList.end()){
+
+    if (_channelList.find(param) == _channelList.end()){
         _channelList[param] = Channel(param);
         _channelList[param].addMember(&client, true);
     }
     else {
         _channelList[param].addMember(&client, false);
     }
-    // store reference to avoid repeating _channelList[param] everywhere
+	
+	// store reference to avoid repeating _channelList[param] everywhere
     Channel &c = _channelList[param];
 
     // broadcast JOIN to everyone
     c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost JOIN " + param + "\r\n");
 
-    // send 353/366 only to the joiner
+    // send 353/366 only to the joiner 353 = RPL_NAMREPLY 366 = RPL_ENDOFNAMES
     sendToClient(client, ":ircserv 353 " + client.getNickname() + " = " + param + " :" + c.getMemberList() + "\r\n");
     sendToClient(client, ":ircserv 366 " + client.getNickname() + " " + param + " :End of NAMES list\r\n");
 }
@@ -256,6 +260,7 @@ void Server::handleCom(Client &client, const std::string &param) {
 		sendToClient(client, ":server 411 " + client.getNickname() + " :No text to send\r\n");
 		return ;
 	}
+	
 	target 	= param.substr(0, pos);
 	msg 	= param.substr(pos + 1);
 
@@ -264,17 +269,51 @@ void Server::handleCom(Client &client, const std::string &param) {
 		return ;
 	}
 	
-	const std::string ircmsg = ":" + client.getNickname() + " PRIVMSG " + target + " :" + msg + "\r\n";
 	if (target[0] == '#')
-		_channelList[target].broadcast(ircmsg);
+		_channelList[target].broadcast(":" + client.getNickname() + " PRIVMSG " + target + " :" + msg + "\r\n");
 	else {
         Client *dest = findClient(target);
         if (!dest) {
             sendToClient(client, ":server 401 " + client.getNickname() + " " + target + " :No such nick\r\n");
             return ;
         }
-        sendToClient(*dest, ircmsg);
+        sendToClient(*dest, ":" + client.getNickname() + " PRIVMSG " + target + " :" + msg + "\r\n");
+		return;
     }
+}
+
+/*PART cmd*/
+void Server::handlePart(Client &client, const std::string &param) {
+	
+    std::string channelName;
+    std::string reason = "Leaving"; // default msg can be replaced 
+
+    size_t space = param.find(' ');
+    if (space != std::string::npos) {
+        channelName = param.substr(0, space);
+        reason      = param.substr(space + 1);
+    } else {
+        channelName = param;
+    }
+
+	if (_channelList.find(channelName) == _channelList.end()) {
+        sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+        return ;
+    }
+
+    Channel &c = _channelList[channelName];
+
+    if (!c.hasMember(&client)) {
+        sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + channelName + " :You're not on that channel\r\n");
+        return ;
+    }
+
+    c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost PART " + channelName + " :" + reason + "\r\n");
+
+    c.removeMember(&client);
+
+    if (c.isEmpty())
+        _channelList.erase(channelName);
 }
 
 /////////////////////////////////////////////////////////////////////////////////

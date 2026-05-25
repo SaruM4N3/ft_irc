@@ -2,6 +2,7 @@
 # define CHANNEL_HPP
 
 #include "Client.hpp"
+#include "Debug.hpp"
 # include <string>
 # include <map>
 # include <vector>
@@ -16,11 +17,13 @@ class Channel {
         // Membership
         void    addMember(Client *client, bool isOp);
         void    removeMember(Client *client);
-        bool    hasMember() const;
+        /** @brief verrify that Channel has this client*/
+        bool    hasMember(Client *client) const;
         bool    isOperator(Client *client) const;
+        bool    isEmpty() const;
 
         // Broadcast
-        /** @brief send message to USER or Channel */
+        /** @brief send message to Channel */
         void    broadcast(const std::string &msg);
 
         // Getters
@@ -54,7 +57,7 @@ class Channel {
 
         bool    _inviteOnly;
         bool    _topicLocked;
-        int     _userLimit;   // 0 = no limit
+        int     _userLimit;
 };
 
 # endif
