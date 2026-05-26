@@ -24,7 +24,9 @@ void    Channel::removeMember(Client *client){
 
 bool    Channel::isEmpty() const
 {
-    return (_members.size());
+    if (_members.size() == 0)
+        return true;
+    return false;
 }
 
 
