@@ -17,6 +17,8 @@ class Channel {
         // Membership
         void    addMember(Client *client, bool isOp);
         void    removeMember(Client *client);
+        void    addInvitation(std::string nickname);
+        void    removeInvitation(std::string nickname);
         /** @brief verrify that Channel has this client*/
         bool    hasMember(Client *client) const;
         bool    isOperator(Client *client) const;

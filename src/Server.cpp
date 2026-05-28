@@ -6,7 +6,7 @@
 /*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:15 by zsonie            #+#    #+#             */
-/*   Updated: 2026/05/26 17:22:59 by vaamonch         ###   ########.fr       */
+/*   Updated: 2026/05/28 19:15:50 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,7 +191,13 @@ void Server::processMessage(Client& client, const std::string& msg) {
 	else if (cmd == "PRIVMSG")
 		handleCom(client, params);
 	else if (cmd == "PART")
-		handlePart(client, params);	
+		handlePart(client, params);
+	else if (cmd == "INVITE")
+		handleInvite(client, params);
+	else if (cmd == "KICK")
+		handleKick(client, params);
+	else if (cmd == "TOPIC")
+		handleTopic(client, params);
 }
 
 void Server::handlePass(Client& client, const std::string& param) {
@@ -231,6 +237,7 @@ void Server::handleUsername(Client& client, const std::string& param) {
 void Server::handleChannel(Client& client, const std::string& param){
 
     if (_channelList.find(param) == _channelList.end()){
+		LOG_W("Channel " + param + " created");
         _channelList[param] = Channel(param);
         _channelList[param].addMember(&client, true);
     }
@@ -313,8 +320,177 @@ void Server::handlePart(Client &client, const std::string &param) {
     c.removeMember(&client);
 
     if (c.isEmpty())
+	{
+		LOG_W("Channel " + channelName + " erased");
         _channelList.erase(channelName);
+	}
 }
+
+/*INVITE cmd*/
+void	Server::handleInvite(Client &client, const std::string &param)
+{
+	std::string	channelName;
+	std::string	target;
+	size_t space = param.find(' ');
+
+	if (space == std::string::npos)
+	{
+		sendToClient(client, ":server ??? " + client.getNickname() + " :Failed to send invite\r\n");
+		return ;
+	}
+
+	channelName = param.substr(0, space);
+	target = param.substr(space + 1);
+	LOG_D("channelName '" + channelName + "'\ntarget '" + target + "'");
+
+	if (channelName.empty() || target.empty())
+	{
+		sendToClient(client, ":server ??? " + client.getNickname() + " :Failed to send invite\r\n");
+		return ;
+	}
+
+	if (_channelList.find(channelName) == _channelList.end())
+	{
+        sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+        return ;
+    }
+
+	Channel &c = _channelList[channelName];
+	if (!c.hasMember(&client))
+	{
+		sendToClient(client, ":server ??? " + client.getNickname() + " " + channelName + " :Not part of channel\r\n");
+		return ;
+	}
+	if (!c.isOperator(&client))
+	{
+		sendToClient(client, "You are not operator on the channel " + channelName + "\r\n");
+		return ;
+	}
+
+	Client *dest = findClient(target);
+	if (!dest)
+	{
+		sendToClient(client, ":server 401 " + client.getNickname() + " " + target + " :No such nick\r\n");
+        return ;	
+	}
+
+	c.addInvitation(target);
+	c.broadcast(target + " has been invited to " + channelName + " by " + client.getNickname());
+	sendToClient(*dest, ":" + client.getNickname() + " Invited you to " + channelName + "\r\n");
+}
+
+/*KICK cmd*/
+void	Server::handleKick(Client &client, const std::string &param)
+{
+	std::string	channelName;
+	std::string	target;
+	size_t 		space = param.find(' ');
+
+	if (space == std::string::npos)
+	{
+		sendToClient(client, ":server ??? " + client.getNickname() + " :Failed to kick\r\n");
+		return ;
+	}
+
+	channelName = param.substr(0, space);
+	target = param.substr(space + 1);
+	LOG_D("channelName '" + channelName + "'\ntarget '" + target + "'");
+
+	if (channelName.empty() || target.empty())
+	{
+		sendToClient(client, ":server ??? " + client.getNickname() + " :Failed to kick\r\n");
+		return ;
+	}
+
+	if (_channelList.find(channelName) == _channelList.end()) {
+        sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+        return ;
+    }
+
+	Channel &c = _channelList[channelName];
+	if (!c.hasMember(&client))
+	{
+		sendToClient(client, ":server ??? " + client.getNickname() + " " + channelName + " :Not part of channel\r\n");
+		return ;
+	}
+	if (!c.isOperator(&client))
+	{
+		sendToClient(client, "You are not operator on the channel " + channelName + "\r\n");
+		return ;
+	}
+
+	Client *dest = findClient(target);
+	if (!dest)
+	{
+		sendToClient(client, ":server 401 " + client.getNickname() + " " + target + " :No such nick\r\n");
+        return ;	
+	}
+
+	c.broadcast(target + " has been kicked from " + channelName + " by " + client.getNickname());
+	sendToClient(*dest, ":" + client.getNickname() + " kick you from " + channelName + "\r\n");
+	c.removeMember(dest);
+	
+	if (c.isEmpty())
+	{
+		LOG_W("Channel " + channelName + " erased");
+        _channelList.erase(channelName);
+	}
+}
+
+/*TOPIC cmd*/
+void	Server::handleTopic(Client &client, const std::string &param)
+{
+	std::string	channelName;
+	std::string	newTopic;
+	
+	if (param.empty())
+	{
+		sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+        return ;
+	}
+
+	size_t 		space = param.find(' ');
+	if (space == std::string::npos)
+		channelName = param;
+	else
+	{
+		channelName = param.substr(0, space);
+		newTopic = param.substr(space + 1);
+	}
+
+	if (_channelList.find(channelName) == _channelList.end()) {
+        sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+        return ;
+    }
+
+	Channel &c = _channelList[channelName];
+	if (space == std::string::npos)
+	{
+		sendToClient(client, "Channel " + channelName + " topic is: " + c.getTopic());
+		return ;
+	}
+
+	if (c.isOperator(&client))
+	{
+		c.setTopic(newTopic);
+		sendToClient(client, "You have changed " + channelName + " topic to: " + newTopic + "\r\n");
+		c.broadcast(client.getNickname() + "has changed " + channelName + " topic to: " + newTopic);
+		return ;
+	}
+	else
+	{
+		if (c.isTopicLocked() && !c.isOperator(&client))
+		{
+			sendToClient(client, "You are not operator on the channel " + channelName + "\r\n");
+			return ;
+		}
+	}
+}
+
+/*PING cmd*/
+
+
+/*QUIT cmd*/
 
 /////////////////////////////////////////////////////////////////////////////////
 //----------------------UTILS---------------------------------------------------/

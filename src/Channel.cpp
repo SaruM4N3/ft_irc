@@ -22,6 +22,15 @@ void    Channel::removeMember(Client *client){
     _members.erase(client);
 }
 
+void Channel::addInvitation(std::string nickname) {
+    _inviteList.insert(nickname); 
+}
+void Channel::removeInvitation(std::string nickname) {
+    std::set<std::string>::const_iterator it = _inviteList.find(nickname);
+    if (it != _inviteList.end())
+        _inviteList.erase(it);
+}
+
 bool    Channel::isEmpty() const
 {
     if (_members.size() == 0)

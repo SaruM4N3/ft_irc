@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: erbuffet <erbuffet@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:20 by zsonie            #+#    #+#             */
-/*   Updated: 2026/05/25 05:13:40 by erbuffet         ###   ########.fr       */
+/*   Updated: 2026/05/28 17:45:58 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,6 +122,11 @@ class Server {
 
  	void handlePart(Client &client, const std::string &param);
 
+	void handleInvite(Client &client, const std::string &param);
+
+	void handleKick(Client &client, const std::string &param);
+
+	void handleTopic(Client &client, const std::string &param);
 
 	
 	/////////////////////////////////////////////////////////////////////////////////
