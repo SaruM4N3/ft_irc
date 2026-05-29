@@ -6,7 +6,7 @@
 /*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:20 by zsonie            #+#    #+#             */
-/*   Updated: 2026/05/29 20:15:52 by vaamonch         ###   ########.fr       */
+/*   Updated: 2026/05/30 00:14:37 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,7 +128,7 @@ class Server {
 
 	void handleTopic(Client &client, const std::string &param);
 
-	void quitChannel();
+	void handleMode(Client &client, const std::string &param);
 
 	void handleQuit(Client &client);
 
