@@ -6,7 +6,7 @@
 /*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:15 by zsonie            #+#    #+#             */
-/*   Updated: 2026/05/28 19:15:50 by vaamonch         ###   ########.fr       */
+/*   Updated: 2026/05/29 19:13:39 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,13 +236,24 @@ void Server::handleUsername(Client& client, const std::string& param) {
 /* JOIN cmd*/
 void Server::handleChannel(Client& client, const std::string& param){
 
+
     if (_channelList.find(param) == _channelList.end()){
 		LOG_W("Channel " + param + " created");
-        _channelList[param] = Channel(param);
+		_channelList[param] = Channel(param);
         _channelList[param].addMember(&client, true);
     }
     else {
-        _channelList[param].addMember(&client, false);
+		Channel &c = _channelList[param];
+		if (!c.isInviteOnly())
+			c.addMember(&client, false);
+		else {
+			if (c.isInvited(client.getNickname()))
+				c.addMember(&client, false);
+			else {
+				sendToClient(client, "Failed to join: Channel " + param + " is InviteOnly\r\n");
+				return ;
+			}
+		}
     }
 	
 	// store reference to avoid repeating _channelList[param] everywhere
@@ -375,7 +386,7 @@ void	Server::handleInvite(Client &client, const std::string &param)
 	}
 
 	c.addInvitation(target);
-	c.broadcast(target + " has been invited to " + channelName + " by " + client.getNickname());
+	c.broadcast(target + " has been invited to " + channelName + " by " + client.getNickname() + "\r\n");
 	sendToClient(*dest, ":" + client.getNickname() + " Invited you to " + channelName + "\r\n");
 }
 
@@ -426,8 +437,8 @@ void	Server::handleKick(Client &client, const std::string &param)
         return ;	
 	}
 
-	c.broadcast(target + " has been kicked from " + channelName + " by " + client.getNickname());
-	sendToClient(*dest, ":" + client.getNickname() + " kick you from " + channelName + "\r\n");
+	c.broadcast(target + " has been kicked from channel " + channelName + " by " + client.getNickname() + "\r\n");
+	sendToClient(*dest, ":" + client.getNickname() + " kick you from channel " + channelName + "\r\n");
 	c.removeMember(dest);
 	
 	if (c.isEmpty())
@@ -466,7 +477,7 @@ void	Server::handleTopic(Client &client, const std::string &param)
 	Channel &c = _channelList[channelName];
 	if (space == std::string::npos)
 	{
-		sendToClient(client, "Channel " + channelName + " topic is: " + c.getTopic());
+		sendToClient(client, "Channel " + channelName + " topic is: " + c.getTopic() + "\r\n");
 		return ;
 	}
 
@@ -474,21 +485,24 @@ void	Server::handleTopic(Client &client, const std::string &param)
 	{
 		c.setTopic(newTopic);
 		sendToClient(client, "You have changed " + channelName + " topic to: " + newTopic + "\r\n");
-		c.broadcast(client.getNickname() + "has changed " + channelName + " topic to: " + newTopic);
+		c.broadcast(client.getNickname() + " has changed " + channelName + " topic to: " + newTopic + "\r\n");
 		return ;
 	}
 	else
 	{
-		if (c.isTopicLocked() && !c.isOperator(&client))
+		if (c.isTopicLocked())
 		{
-			sendToClient(client, "You are not operator on the channel " + channelName + "\r\n");
-			return ;
+			if (!c.isOperator(&client))
+			{
+				sendToClient(client, "You are not operator on the channel " + channelName + "\r\n");
+				return ;
+			}
+			c.setTopic(newTopic);
+			sendToClient(client, "You have changed " + channelName + " topic to: " + newTopic + "\r\n");
+			c.broadcast(client.getNickname() + " has changed " + channelName + " topic to: " + newTopic + "\r\n");
 		}
 	}
 }
-
-/*PING cmd*/
-
 
 /*QUIT cmd*/
 

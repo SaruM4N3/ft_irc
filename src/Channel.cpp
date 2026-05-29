@@ -4,8 +4,8 @@ Channel::Channel(const std::string &name)
     : _name(name),
       _topic("UNDEFINED"),
       _password(""),
-      _inviteOnly(false),
-      _topicLocked(false),
+      _inviteOnly(true),
+      _topicLocked(true),
       _userLimit(100)
 {}
 
@@ -17,13 +17,16 @@ Channel::~Channel(){
 
 void Channel::addMember(Client *client, bool isOp) {
     _members[client] = isOp;
+    if (isInvited(client->getNickname()))
+        removeInvitation(client->getNickname());
 }
 void    Channel::removeMember(Client *client){
     _members.erase(client);
 }
 
 void Channel::addInvitation(std::string nickname) {
-    _inviteList.insert(nickname); 
+    if (!isInvited(nickname))
+        _inviteList.insert(nickname); 
 }
 void Channel::removeInvitation(std::string nickname) {
     std::set<std::string>::const_iterator it = _inviteList.find(nickname);
