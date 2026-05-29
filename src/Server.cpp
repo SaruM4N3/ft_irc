@@ -6,7 +6,7 @@
 /*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:15 by zsonie            #+#    #+#             */
-/*   Updated: 2026/05/29 19:13:39 by vaamonch         ###   ########.fr       */
+/*   Updated: 2026/05/29 21:52:24 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,6 +198,8 @@ void Server::processMessage(Client& client, const std::string& msg) {
 		handleKick(client, params);
 	else if (cmd == "TOPIC")
 		handleTopic(client, params);
+	else if (cmd == "QUIT")
+		handleQuit(client);
 }
 
 void Server::handlePass(Client& client, const std::string& param) {
@@ -244,6 +246,10 @@ void Server::handleChannel(Client& client, const std::string& param){
     }
     else {
 		Channel &c = _channelList[param];
+		if (c.hasMember(&client)){
+			sendToClient(client, "You are already a member of channel " + c.getName() + "\r\n");
+			return ;
+		}
 		if (!c.isInviteOnly())
 			c.addMember(&client, false);
 		else {
@@ -326,9 +332,11 @@ void Server::handlePart(Client &client, const std::string &param) {
         return ;
     }
 
+    c.removeMember(&client);
+
+	sendToClient(client, "You left channel " + c.getName() + "\r\n");
     c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost PART " + channelName + " :" + reason + "\r\n");
 
-    c.removeMember(&client);
 
     if (c.isEmpty())
 	{
@@ -504,7 +512,38 @@ void	Server::handleTopic(Client &client, const std::string &param)
 	}
 }
 
+/*MODE cmd*/
+
+
 /*QUIT cmd*/
+void	Server::handleQuit(Client &client)
+{
+    std::string 	reason = "Quitting server";
+	std::set<std::string>		channelNames;
+
+	for (std::map<std::string, Channel>::iterator it = _channelList.begin(); it != _channelList.end(); it++)
+	{
+		Channel &c = it->second;
+		if (c.hasMember(&client))
+		{
+			channelNames.insert(c.getName());
+			c.removeMember(&client);
+			sendToClient(client, "You left channel " + c.getName() + "\r\n");
+			c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost PART " + c.getName() + " :" + reason + "\r\n");
+		}
+	}
+	for (std::set<std::string>::const_iterator it = channelNames.begin(); it != channelNames.end(); it++)
+	{
+		Channel &c = _channelList[it->c_str()];
+		if (c.isEmpty())
+		{
+			LOG_W("Channel " + c.getName() + " erased");
+        	_channelList.erase(c.getName());
+		}
+	}
+	sendToClient(client, "You disconnected from the server (Not really, I'm still working on it)\r\n");
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////
 //----------------------UTILS---------------------------------------------------/

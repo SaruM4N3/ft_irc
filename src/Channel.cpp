@@ -4,7 +4,7 @@ Channel::Channel(const std::string &name)
     : _name(name),
       _topic("UNDEFINED"),
       _password(""),
-      _inviteOnly(true),
+      _inviteOnly(false),
       _topicLocked(true),
       _userLimit(100)
 {}
