@@ -23,6 +23,7 @@ class Channel {
         bool    hasMember(Client *client) const;
         bool    isOperator(Client *client) const;
         bool    isEmpty() const;
+        void    OpPrivilege(std::string nickname, bool status);
 
         // Broadcast
         /** @brief send message to Channel */

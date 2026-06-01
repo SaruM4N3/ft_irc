@@ -6,7 +6,7 @@
 /*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:15 by zsonie            #+#    #+#             */
-/*   Updated: 2026/05/30 01:45:38 by vaamonch         ###   ########.fr       */
+/*   Updated: 2026/06/01 09:14:06 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <cstring>
 #include <string>
 #include <fcntl.h>
+#include <cstdlib>
 #include "Debug.hpp"
 
 //--------------------Constructor/Destructor---------------------------
@@ -537,7 +538,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 {
 	std::string channelName;
 	std::string flag;
-	std::string target;
+	std::string arg;
 
 	if (param.empty())
 	{
@@ -577,11 +578,16 @@ void	Server::handleMode(Client &client, const std::string &param)
 	if (space[1] != space[0])
 	{
 		flag = param.substr(space[0] + 1, space[1]);
-		target = param.substr(space[1] + 1);
+		arg = param.substr(space[1] + 1);
 	}
 	else
 		flag = param.substr(space[0] + 1);
 
+	if (flag[0] != '+' && flag[0] != '-')
+	{
+		sendToClient(client, "Invalid flag: " + flag + "\r\n");
+		return ;
+	}
 
 	int	idx = findFlag(flag[1]);
 	switch (idx)
@@ -598,7 +604,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 				c.broadcast(client.getNickname() + " has changed " + c.getName() + " to Invite-only\r\n");
 			}
 		}
-		else if (flag[0] == '-')
+		else
 		{
 			if (!c.isInviteOnly())
 				sendToClient(client, "Channel " + c.getName() + " is already Open to everyone\r\n");
@@ -608,10 +614,6 @@ void	Server::handleMode(Client &client, const std::string &param)
 				sendToClient(client, "You have changed " + c.getName() + " to Open to everyone\r\n");
 				c.broadcast(client.getNickname() + " has changed " + c.getName() + " to Open to everyone\r\n");
 			}
-		}
-		else
-		{
-			sendToClient(client, "Invalid flag: " + flag + "\r\n");
 		}
 		break;
 
@@ -627,7 +629,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 				c.broadcast(client.getNickname() + " has locked " + c.getName() + " topic\r\n");
 			}
 		}
-		else if (flag[0] == '-')
+		else
 		{
 			if (!c.isTopicLocked())
 				sendToClient(client, "Channel " + c.getName() + " topic is already Unlock\r\n");
@@ -638,27 +640,85 @@ void	Server::handleMode(Client &client, const std::string &param)
 				c.broadcast(client.getNickname() + " has unlocked " + c.getName() + " topic\r\n");
 			}
 		}
+		break;
+
+	case 2:	
+		if (flag[0] == '+')
+		{
+			if (!arg.c_str())
+			{
+				sendToClient(client, "Missing key\r\n");
+				break;
+			}
+			c.setPassword(arg);
+			sendToClient(client, "You have changed " + c.getName() + " key\r\n");
+			c.broadcast(client.getNickname() + " has changed " + c.getName() + " key\r\n");
+		}
 		else
 		{
-			sendToClient(client, "Invalid flag: " + flag + "\r\n");
+			c.setPassword("");
+			sendToClient(client, "You have removed " + c.getName() + " key\r\n");
+			c.broadcast(client.getNickname() + " has removed " + c.getName() + " key\r\n");
 		}
 		break;
 
-	case 2:
-		/* code */
-		break;
-
 	case 3:
-		/* code */
+		if (!findClient(arg))
+		{
+			sendToClient(client, "Invalid Target\r\n");
+			break;
+		}
+
+		if (!c.hasMember(findClient(arg)))
+		{
+			sendToClient(client, arg + " is not a member of channel " + c.getName() + "\r\n");
+			break;
+		}
+
+		if (flag[0] == '+')
+		{
+			if (c.isOperator(findClient(arg)))
+			{
+				sendToClient(client, arg + " already has operator privilege on channel " + c.getName() + "\r\n");
+				break;
+			}
+			c.OpPrivilege(arg, 1);
+			sendToClient(client, "You have given operator privilege to " + arg + "\r\n");
+			c.broadcast(client.getNickname() + " has given operator privilege to " + arg + "\r\n");
+		}
+		else
+		{
+			if (!c.isOperator(findClient(arg)))
+			{
+				sendToClient(client, arg + " does not have operator privilege on channel " + c.getName() + "\r\n");
+				break;
+			}
+			c.OpPrivilege(arg, 0);
+			sendToClient(client, "You have taken operator privilege from " + arg + "\r\n");
+			c.broadcast(client.getNickname() + " has taken operator privilege from " + arg + "\r\n");
+		}
 		break;
 
 	case 4:
-		/* code */
+		if (flag[0] == '+')
+		{
+			c.setUserLimit(std::atoi(arg.c_str()));
+			sendToClient(client, "You have set a user limit of " + arg + " on " + c.getName() + "\r\n");
+			c.broadcast(client.getNickname() + " has set a user limit of " + arg + " on " + c.getName() + "\r\n");
+		}
+		else
+		{
+			c.setUserLimit(-1);
+			sendToClient(client, "You have removed user limit from " + c.getName() + "\r\n");
+			c.broadcast(client.getNickname() + " has removed user limit from " + c.getName() + "\r\n");
+		}
 		break;
 
 	default:
+	{
 		sendToClient(client, "Invalid flag: " + flag + "\r\n");
 		break;
+	}
 	}	
 }
 

@@ -6,7 +6,7 @@ Channel::Channel(const std::string &name)
       _password(""),
       _inviteOnly(false),
       _topicLocked(true),
-      _userLimit(100)
+      _userLimit(-1)
 {}
 
 Channel::~Channel(){
@@ -59,6 +59,30 @@ bool    Channel::isOperator(Client *client) const {
     }
     return (it->second);
 }
+
+// Client* Server::findClient(const std::string &nick) {
+//     for (std::map<int, Client*>::iterator it = _clientMap.begin();
+//          it != _clientMap.end(); it++) {
+//         if (it->second->getNickname() == nick)
+//             return it->second;
+//     }
+//     return NULL;
+// }
+
+void	Channel::OpPrivilege(std::string nickname, bool status)
+{
+	std::map<Client*, bool>::iterator it;
+
+	for (it = _members.begin(); it != _members.end(); it++)
+	{
+		if (it->first->getNickname() == nickname)
+		{
+			it->second = status;
+			break;
+		}
+	}
+}
+
 
 // --------------------------- BROADCAST ------------------------------------------
 
