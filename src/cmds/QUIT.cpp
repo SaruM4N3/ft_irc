@@ -25,5 +25,6 @@ void	Server::handleQuit(Client &client)
         	_channelList.erase(c.getName());
 		}
 	}
-	sendToClient(client, "You disconnected from the server (Not really, I'm still working on it)\r\n");
+	sendToClient(client, "You disconnected from the server\r\n");
+	removeClient(client.getFd());
 }
