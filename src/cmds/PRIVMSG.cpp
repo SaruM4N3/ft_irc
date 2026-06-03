@@ -19,8 +19,13 @@ void Server::handleCom(Client &client, const std::string &param) {
 		return ;
 	}
 	
-	if (target[0] == '#')
+	if (target[0] == '#') {
+		if (!_channelList[target].hasMember(&client)) {
+        	sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + target + " :You're not on that channel\r\n");
+        	return ;
+   		}
 		_channelList[target].broadcast(":" + client.getNickname() + " PRIVMSG " + target + " :" + msg + "\r\n");
+	}
 	else {
         Client *dest = findClient(target);
         if (!dest) {
