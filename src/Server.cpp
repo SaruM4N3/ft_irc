@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
+/*   By: erbuffet <erbuffet@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:15 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/01 09:24:13 by vaamonch         ###   ########.fr       */
+/*   Updated: 2026/06/06 04:35:31 by erbuffet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -202,6 +202,8 @@ void Server::processMessage(Client& client, const std::string& msg) {
 		handleMode(client, params);
 	else if (cmd == "QUIT")
 		handleQuit(client);
+	else if (cmd == "PING")
+		handlePing(client, params);
 }
 
 void Server::handlePass(Client& client, const std::string& param) {
@@ -229,7 +231,8 @@ void Server::handleNickname(Client& client, const std::string& param) {
 }
 
 void Server::handleUsername(Client& client, const std::string& param) {
-	client.setUsername(param);
+    std::string username = param.substr(0, param.find(' '));
+    client.setUsername(username);
 	if (!client.getNickname().empty()) {
 		client.setRegistered(true);
 		sendToClient(client, ":ircserv 001 " + client.getNickname() +

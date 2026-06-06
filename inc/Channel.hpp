@@ -1,3 +1,4 @@
+
 # ifndef CHANNEL_HPP
 # define CHANNEL_HPP
 
@@ -28,19 +29,24 @@ class Channel {
         // Broadcast
         /** @brief send message to Channel */
         void    broadcast(const std::string &msg);
+        void    broadcastE(const std::string &msg, Client* client);
 
         // Getters
-        const std::string           &getName()     const;
-        const std::string           &getTopic()    const;
-        const std::string           &getPassword() const;
-        int                          getUserLimit() const;
-        bool                         isInviteOnly() const;
-        bool                         isTopicLocked() const;
-        std::string                  getMemberList() const;
+        const std::string           &getName()          const;
+        const std::string           &getTopic()         const;
+        const std::string           &getTopicSetter()   const;
+        const std::string           &getPassword()      const;
+        const time_t                &getTopicTime()     const;
+        size_t                       getMemberCount()   const;
+
+        int                          getUserLimit()     const;
+        bool                         isInviteOnly()     const;
+        bool                         isTopicLocked()    const;
+        std::string                  getMemberList()    const;
 
         // Setters (called by MODE handler) 
+	    void    setTopic(const std::string &topic, const std::string &setter);
         void    setName(const std::string &name);
-        void    setTopic(const std::string &topic);
         void    setPassword(const std::string &password);
         void    setUserLimit(int limit);
         void    setInviteOnly(bool val);
@@ -53,6 +59,8 @@ class Channel {
     private:
         std::string             _name;
         std::string             _topic;
+        std::string             _topicSetter;
+        time_t                  _topicTime;
         std::string             _password;
 
         std::map<Client*, bool> _members;    // client → is_operator

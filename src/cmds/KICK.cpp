@@ -2,23 +2,28 @@
 
 void	Server::handleKick(Client &client, const std::string &param)
 {
-	std::string	channelName;
-	std::string	target;
-	size_t 		space = param.find(' ');
+	std::string target;
+    std::string reason;
 
-	if (space == std::string::npos)
-	{
-		sendToClient(client, ":server ??? " + client.getNickname() + " :Failed to kick\r\n");
-		return ;
+    size_t space = param.find(' ');
+
+	std::string channelName = param.substr(0, space);
+	std::string rest = param.substr(space + 1);
+	
+	// check for reason after target
+	size_t reasonPos = rest.find(' ');
+	if (reasonPos != std::string::npos) {
+	    target = rest.substr(0, reasonPos);
+	    reason = rest.substr(reasonPos + 2);  // skip ' :'
+	} else {
+	    target = rest;
+	    reason = "Kicked";  // default
 	}
-
-	channelName = param.substr(0, space);
-	target = param.substr(space + 1);
 	LOG_D("channelName '" + channelName + "'\ntarget '" + target + "'");
 
-	if (channelName.empty() || target.empty())
+	if (channelName.empty() || target.empty() || space == std::string::npos)
 	{
-		sendToClient(client, ":server ??? " + client.getNickname() + " :Failed to kick\r\n");
+		sendToClient(client, ":ircserv 461 " + client.getNickname() + " KICK :Not enough parameters\r\n");
 		return ;
 	}
 
@@ -30,24 +35,23 @@ void	Server::handleKick(Client &client, const std::string &param)
 	Channel &c = _channelList[channelName];
 	if (!c.hasMember(&client))
 	{
-		sendToClient(client, ":server ??? " + client.getNickname() + " " + channelName + " :Not part of channel\r\n");
+		sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + channelName + " :You're not on that channel\r\n");
 		return ;
 	}
 	if (!c.isOperator(&client))
 	{
-		sendToClient(client, "You are not operator on the channel " + channelName + "\r\n");
+		sendToClient(client, ":ircserv 482 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n");
 		return ;
 	}
 
 	Client *dest = findClient(target);
 	if (!dest)
 	{
-		sendToClient(client, ":server 401 " + client.getNickname() + " " + target + " :No such nick\r\n");
+		sendToClient(client, ":ircserv 441 " + client.getNickname() + " " + target + " " + channelName + " :They aren't on that channel\r\n");
         return ;	
 	}
 
-	c.broadcast(target + " has been kicked from channel " + channelName + " by " + client.getNickname() + "\r\n");
-	sendToClient(*dest, ":" + client.getNickname() + " kick you from channel " + channelName + "\r\n");
+	c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost KICK " + channelName + " " + target + " :" + reason + "\r\n");
 	c.removeMember(dest);
 	
 	if (c.isEmpty())

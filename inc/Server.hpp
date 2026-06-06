@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
+/*   By: erbuffet <erbuffet@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:20 by zsonie            #+#    #+#             */
-/*   Updated: 2026/05/30 00:14:37 by vaamonch         ###   ########.fr       */
+/*   Updated: 2026/06/06 04:35:06 by erbuffet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,6 +131,8 @@ class Server {
 	void handleMode(Client &client, const std::string &param);
 
 	void handleQuit(Client &client);
+
+	void handlePing(Client &client, const std::string &param);
 
 	
 	/////////////////////////////////////////////////////////////////////////////////

@@ -2,7 +2,9 @@
 
 Channel::Channel(const std::string &name)
     : _name(name),
-      _topic("UNDEFINED"),
+      _topic(""),
+      _topicSetter(""),
+      _topicTime(0),
       _password(""),
       _inviteOnly(false),
       _topicLocked(true),
@@ -11,7 +13,6 @@ Channel::Channel(const std::string &name)
 
 Channel::~Channel(){
 }
-
 
 // --------------------------- MEMBERSHIP ------------------------------------------
 
@@ -92,10 +93,23 @@ void Channel::broadcast(const std::string &msg){
     }
 }
 
+void Channel::broadcastE(const std::string &msg, Client* client){
+    for (std::map<Client*, bool>::const_iterator it = _members.begin(); it != _members.end(); it++){
+        if (it->first->getUsername() != client->getUsername())
+            ::send(it->first->getFd(), msg.c_str(), msg.size(), 0);
+    }
+}
+
 // --------------------------- GETTERS ------------------------------------------
 
 const std::string   &Channel::getName()     const{
     return(this->_name);
+}
+const time_t &Channel::getTopicTime() const {
+    return(this->_topicTime);
+}
+const std::string &Channel::getTopicSetter() const {
+    return(this->_topicSetter);
 }
 
 const std::string   &Channel::getTopic()    const{
@@ -104,6 +118,10 @@ const std::string   &Channel::getTopic()    const{
 
 const std::string   &Channel::getPassword() const{
     return(this->_password);
+}
+
+size_t Channel::getMemberCount() const {
+    return (this->_members.size());
 }
 
 int                  Channel::getUserLimit() const{
@@ -135,8 +153,10 @@ std::string Channel::getMemberList() const {
 void Channel::setName(const std::string &name){
     this->_name = name;
 }
-void    Channel::setTopic(const std::string &topic){
-    this->_topic = topic;
+void Channel::setTopic(const std::string &topic, const std::string &setter) {
+    _topic       = topic;
+    _topicSetter = setter;
+    _topicTime   = time(NULL);  // stored in channel
 }
 void    Channel::setPassword(const std::string &password){
     this->_password = password;

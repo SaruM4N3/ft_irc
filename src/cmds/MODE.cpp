@@ -29,11 +29,12 @@ void	Server::handleMode(Client &client, const std::string &param)
 	space[0] = param.find_first_of(' ');
 	space[1] = param.find_last_of(' ');
 
-	if (space[0] == std::string::npos || space[1] == std::string::npos)
-	{
-		sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
-        return ;
-	}
+	// PROBLEMS : send NO such channel at channel creation and join of existing channel if removed : invalid flag error
+	// if (space[0] == std::string::npos || space[1] == std::string::npos)
+	// {
+	// 	sendToClient(client, ":ircserv 403d " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+    //     return ;
+	// }
 
 	channelName = param.substr(0, space[0]);
 	if (_channelList.find(channelName) == _channelList.end())
@@ -75,23 +76,23 @@ void	Server::handleMode(Client &client, const std::string &param)
 		if (flag[0] == '+')
 		{
 			if (c.isInviteOnly())
-				sendToClient(client, "Mode +i already set on " + c.getName() + "\r\n");
+				sendToClient(client, "Channel " + c.getName() + " is already Invite-only\r\n");
 			else
 			{
 				c.setInviteOnly(true);
-				sendToClient(client, "You have set mode +i on " + c.getName() + "\r\n");
-				c.broadcast(client.getNickname() + " has set mode +i on " + c.getName() + "\r\n");
+				sendToClient(client, "You have changed " + c.getName() + " to Invite-only\r\n");
+				c.broadcast(client.getNickname() + " has changed " + c.getName() + " to Invite-only\r\n");
 			}
 		}
 		else
 		{
 			if (!c.isInviteOnly())
-				sendToClient(client, "Mode -i already set on " + c.getName() + "\r\n");
+				sendToClient(client, "Channel " + c.getName() + " is already Open to everyone\r\n");
 			else
 			{
 				c.setInviteOnly(false);
-				sendToClient(client, "You have set mode -i on " + c.getName() + "\r\n");
-				c.broadcast(client.getNickname() + " has set mode -i on " + c.getName() + "\r\n");
+				sendToClient(client, "You have changed " + c.getName() + " to Open to everyone\r\n");
+				c.broadcast(client.getNickname() + " has changed " + c.getName() + " to Open to everyone\r\n");
 			}
 		}
 		break;
@@ -100,23 +101,23 @@ void	Server::handleMode(Client &client, const std::string &param)
 		if (flag[0] == '+')
 		{
 			if (c.isTopicLocked())
-				sendToClient(client, "Mode +t already set on " + c.getName() + "\r\n");
+				sendToClient(client, "Channel " + c.getName() + " topic is already Locked\r\n");
 			else
 			{
 				c.setInviteOnly(true);
-				sendToClient(client, "You have set mode +t on " + c.getName() + "\r\n");
-				c.broadcast(client.getNickname() + " has set mode +t on " + c.getName() + "\r\n");
+				sendToClient(client, "You have locked " + c.getName() + " topic\r\n");
+				c.broadcast(client.getNickname() + " has locked " + c.getName() + " topic\r\n");
 			}
 		}
 		else
 		{
 			if (!c.isTopicLocked())
-				sendToClient(client, "Mode -t already set on " + c.getName() + "\r\n");
+				sendToClient(client, "Channel " + c.getName() + " topic is already Unlock\r\n");
 			else
 			{
 				c.setInviteOnly(false);
-				sendToClient(client, "You have set mode -t on " + c.getName() + "\r\n");
-				c.broadcast(client.getNickname() + " has set mode -t on " + c.getName() + "\r\n");
+				sendToClient(client, "You have unlocked " + c.getName() + " topic\r\n");
+				c.broadcast(client.getNickname() + " has unlocked " + c.getName() + " topic\r\n");
 			}
 		}
 		break;
@@ -130,14 +131,14 @@ void	Server::handleMode(Client &client, const std::string &param)
 				break;
 			}
 			c.setPassword(arg);
-			sendToClient(client, "You have set channel " + c.getName() + " keyword to " + arg + "\r\n");
-			c.broadcast(client.getNickname() + " has set channel " + c.getName() + " keyword to " + arg + "\r\n");
+			sendToClient(client, "You have changed " + c.getName() + " key\r\n");
+			c.broadcast(client.getNickname() + " has changed " + c.getName() + " key\r\n");
 		}
 		else
 		{
 			c.setPassword("");
-			sendToClient(client, "You have removed channel " + c.getName() + " keyword\r\n");
-			c.broadcast(client.getNickname() + " has removed channel " + c.getName() + " keyword\r\n");
+			sendToClient(client, "You have removed " + c.getName() + " key\r\n");
+			c.broadcast(client.getNickname() + " has removed " + c.getName() + " key\r\n");
 		}
 		break;
 
@@ -162,8 +163,8 @@ void	Server::handleMode(Client &client, const std::string &param)
 				break;
 			}
 			c.OpPrivilege(arg, 1);
-			sendToClient(client, "You have given operator privilege to " + arg + "\r\n");
-			c.broadcast(client.getNickname() + " has given operator privilege to " + arg + "\r\n");
+			sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +o " + arg + "\r\n");
+			c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +o " + arg + "\r\n", &client);
 		}
 		else
 		{
@@ -173,8 +174,8 @@ void	Server::handleMode(Client &client, const std::string &param)
 				break;
 			}
 			c.OpPrivilege(arg, 0);
-			sendToClient(client, "You have taken operator privilege from " + arg + "\r\n");
-			c.broadcast(client.getNickname() + " has taken operator privilege from " + arg + "\r\n");
+			sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -o " + arg + "\r\n");
+			c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -o " + arg + "\r\n", &client);
 		}
 		break;
 
@@ -182,14 +183,14 @@ void	Server::handleMode(Client &client, const std::string &param)
 		if (flag[0] == '+')
 		{
 			c.setUserLimit(std::atoi(arg.c_str()));
-			sendToClient(client, "You have set channel " + c.getName() + " limit to " + arg + "\r\n");
-			c.broadcast(client.getNickname() + " has set channel " + c.getName() + " limit to " + arg + "\r\n");
+			sendToClient(client, "You have set a user limit of " + arg + " on " + c.getName() + "\r\n");
+			c.broadcast(client.getNickname() + " has set a user limit of " + arg + " on " + c.getName() + "\r\n");
 		}
 		else
 		{
 			c.setUserLimit(-1);
-			sendToClient(client, "You have removed user limit on channel " + c.getName() + "\r\n");
-			c.broadcast(client.getNickname() + " has removed user limit on channel " + c.getName() + "\r\n");
+			sendToClient(client, "You have removed user limit from " + c.getName() + "\r\n");
+			c.broadcast(client.getNickname() + " has removed user limit from " + c.getName() + "\r\n");
 		}
 		break;
 
