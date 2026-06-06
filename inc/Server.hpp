@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: erbuffet <erbuffet@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:20 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/06 04:35:06 by erbuffet         ###   ########.fr       */
+/*   Updated: 2026/06/06 17:52:49 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,7 +107,7 @@ class Server {
 	 */
 	void handleUsername(Client& client, const std::string& param);
 	/**
-	 *@brief Handle the joining of a channel
+	 *@brief Handle the joining of a channel.
 	 *	This step come after client is identified with USER and NICK.
 	 *	Client Should have username and nickname to get registered and be able
 	 *  to interact with the channel.
@@ -119,15 +119,27 @@ class Server {
 	 *  if param == NICK => send to this USER
 	*/
 	void handleCom(Client &client, const std::string& param);
-
+	/**
+	 *@brief Handle the parting from a channel. 
+	*/
  	void handlePart(Client &client, const std::string &param);
-
+	/**
+	 *@brief Handle the inviting to a channel. 
+	*/
 	void handleInvite(Client &client, const std::string &param);
-
+	/**
+	 *@brief Handle the kicking from a channel. 
+	*/
 	void handleKick(Client &client, const std::string &param);
-
+	/**
+	 *@brief Handle the topic of a channel.
+	 *	if param == NULL => display current topic to client
+	 *	if param != NULL => set topic as param if possible
+	*/
 	void handleTopic(Client &client, const std::string &param);
-
+	/**
+	 *@brief Handle channel status & settings.
+	*/
 	void handleMode(Client &client, const std::string &param);
 
 	void handleQuit(Client &client);
