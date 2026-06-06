@@ -32,7 +32,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 	// PROBLEMS : send NO such channel at channel creation and join of existing channel if removed : invalid flag error
 	// if (space[0] == std::string::npos || space[1] == std::string::npos)
 	// {
-	// 	sendToClient(client, ":ircserv 403d " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+	// 	sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
     //     return ;
 	// }
 
@@ -46,12 +46,12 @@ void	Server::handleMode(Client &client, const std::string &param)
 	Channel	&c = _channelList[channelName];
 	if (!c.hasMember(&client))
 	{
-		sendToClient(client, ":server ??? " + client.getNickname() + " " + channelName + " :Not part of channel\r\n");
+		sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + channelName + " :You're not on that channel\r\n");
 		return ;
 	}
 	if (!c.isOperator(&client))
 	{
-		sendToClient(client, "You are not operator on the channel " + channelName + "\r\n");
+		sendToClient(client, ":ircserv 482 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n");
 		return ;
 	}
 
@@ -65,7 +65,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 
 	if (flag[0] != '+' && flag[0] != '-')
 	{
-		sendToClient(client, "Invalid flag: " + flag + "\r\n");
+		sendToClient(client, ":ircserv 472 " + client.getNickname() + " " + channelName + " :Invalid Flag\r\n");
 		return ;
 	}
 
@@ -80,8 +80,8 @@ void	Server::handleMode(Client &client, const std::string &param)
 			else
 			{
 				c.setInviteOnly(true);
-				sendToClient(client, "You have changed " + c.getName() + " to Invite-only\r\n");
-				c.broadcast(client.getNickname() + " has changed " + c.getName() + " to Invite-only\r\n");
+				sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +i " + arg + "\r\n");
+				c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +i " + arg + "\r\n", &client);
 			}
 		}
 		else
@@ -91,8 +91,8 @@ void	Server::handleMode(Client &client, const std::string &param)
 			else
 			{
 				c.setInviteOnly(false);
-				sendToClient(client, "You have changed " + c.getName() + " to Open to everyone\r\n");
-				c.broadcast(client.getNickname() + " has changed " + c.getName() + " to Open to everyone\r\n");
+				sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -i " + arg + "\r\n");
+				c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -i " + arg + "\r\n", &client);
 			}
 		}
 		break;
@@ -105,8 +105,8 @@ void	Server::handleMode(Client &client, const std::string &param)
 			else
 			{
 				c.setInviteOnly(true);
-				sendToClient(client, "You have locked " + c.getName() + " topic\r\n");
-				c.broadcast(client.getNickname() + " has locked " + c.getName() + " topic\r\n");
+				sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +t " + arg + "\r\n");
+				c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +t " + arg + "\r\n", &client);
 			}
 		}
 		else
@@ -116,8 +116,8 @@ void	Server::handleMode(Client &client, const std::string &param)
 			else
 			{
 				c.setInviteOnly(false);
-				sendToClient(client, "You have unlocked " + c.getName() + " topic\r\n");
-				c.broadcast(client.getNickname() + " has unlocked " + c.getName() + " topic\r\n");
+				sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -t " + arg + "\r\n");
+				c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -t " + arg + "\r\n", &client);
 			}
 		}
 		break;
@@ -131,21 +131,21 @@ void	Server::handleMode(Client &client, const std::string &param)
 				break;
 			}
 			c.setPassword(arg);
-			sendToClient(client, "You have changed " + c.getName() + " key\r\n");
-			c.broadcast(client.getNickname() + " has changed " + c.getName() + " key\r\n");
+			sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +k " + arg + "\r\n");
+			c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +k " + arg + "\r\n", &client);
 		}
 		else
 		{
 			c.setPassword("");
-			sendToClient(client, "You have removed " + c.getName() + " key\r\n");
-			c.broadcast(client.getNickname() + " has removed " + c.getName() + " key\r\n");
+			sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -k " + arg + "\r\n");
+			c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -k " + arg + "\r\n", &client);
 		}
 		break;
 
 	case 3:
 		if (!findClient(arg))
 		{
-			sendToClient(client, "Invalid Target\r\n");
+			sendToClient(client, ":ircserv 401 " + client.getNickname() + " " + channelName + " :No such nick\r\n");
 			break;
 		}
 
@@ -183,20 +183,20 @@ void	Server::handleMode(Client &client, const std::string &param)
 		if (flag[0] == '+')
 		{
 			c.setUserLimit(std::atoi(arg.c_str()));
-			sendToClient(client, "You have set a user limit of " + arg + " on " + c.getName() + "\r\n");
-			c.broadcast(client.getNickname() + " has set a user limit of " + arg + " on " + c.getName() + "\r\n");
+			sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +l " + arg + "\r\n");
+			c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +l " + arg + "\r\n", &client);
 		}
 		else
 		{
 			c.setUserLimit(-1);
-			sendToClient(client, "You have removed user limit from " + c.getName() + "\r\n");
-			c.broadcast(client.getNickname() + " has removed user limit from " + c.getName() + "\r\n");
+			sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -l " + arg + "\r\n");
+			c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -l " + arg + "\r\n", &client);
 		}
 		break;
 
 	default:
 	{
-		sendToClient(client, "Invalid flag: " + flag + "\r\n");
+		sendToClient(client, ":ircserv 472 " + client.getNickname() + " " + channelName + " :Invalid Flag\r\n");
 		break;
 	}
 	}	
