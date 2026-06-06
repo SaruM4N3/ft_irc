@@ -202,6 +202,8 @@ void Server::processMessage(Client& client, const std::string& msg) {
 		handleMode(client, params);
 	else if (cmd == "QUIT")
 		handleQuit(client);
+	else if (cmd == "PING")
+		handlePing(client, params);
 }
 
 void Server::handlePass(Client& client, const std::string& param) {
@@ -229,7 +231,8 @@ void Server::handleNickname(Client& client, const std::string& param) {
 }
 
 void Server::handleUsername(Client& client, const std::string& param) {
-	client.setUsername(param);
+    std::string username = param.substr(0, param.find(' '));
+    client.setUsername(username);
 	if (!client.getNickname().empty()) {
 		client.setRegistered(true);
 		sendToClient(client, ":ircserv 001 " + client.getNickname() +

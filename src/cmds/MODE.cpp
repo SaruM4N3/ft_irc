@@ -29,11 +29,12 @@ void	Server::handleMode(Client &client, const std::string &param)
 	space[0] = param.find_first_of(' ');
 	space[1] = param.find_last_of(' ');
 
-	if (space[0] == std::string::npos || space[1] == std::string::npos)
-	{
-		sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
-        return ;
-	}
+	// PROBLEMS : send NO such channel at channel creation and join of existing channel if removed : invalid flag error
+	// if (space[0] == std::string::npos || space[1] == std::string::npos)
+	// {
+	// 	sendToClient(client, ":ircserv 403d " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+    //     return ;
+	// }
 
 	channelName = param.substr(0, space[0]);
 	if (_channelList.find(channelName) == _channelList.end())
@@ -162,8 +163,8 @@ void	Server::handleMode(Client &client, const std::string &param)
 				break;
 			}
 			c.OpPrivilege(arg, 1);
-			sendToClient(client, "You have given operator privilege to " + arg + "\r\n");
-			c.broadcast(client.getNickname() + " has given operator privilege to " + arg + "\r\n");
+			sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +o " + arg + "\r\n");
+			c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +o " + arg + "\r\n", &client);
 		}
 		else
 		{
@@ -173,8 +174,8 @@ void	Server::handleMode(Client &client, const std::string &param)
 				break;
 			}
 			c.OpPrivilege(arg, 0);
-			sendToClient(client, "You have taken operator privilege from " + arg + "\r\n");
-			c.broadcast(client.getNickname() + " has taken operator privilege from " + arg + "\r\n");
+			sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -o " + arg + "\r\n");
+			c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -o " + arg + "\r\n", &client);
 		}
 		break;
 

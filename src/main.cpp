@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 	// only for testing, remove this part
 	if (argc == 1) {
 		try {
-			Server server(6667, "");
+			Server server(6667, "pass");
 			server.update();
 		} catch (const std::exception& e) {
 			std::cerr << "Error: " << e.what() << std::endl;

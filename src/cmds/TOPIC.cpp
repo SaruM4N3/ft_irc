@@ -1,56 +1,49 @@
 #include "Server.hpp"
 
-void	Server::handleTopic(Client &client, const std::string &param)
-{
-	std::string	channelName;
-	std::string	newTopic;
-	
-	if (param.empty())
-	{
-		sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
-        return ;
-	}
+void Server::handleTopic(Client &client, const std::string &param) {
 
-	size_t 		space = param.find(' ');
-	if (space == std::string::npos)
-		channelName = param;
-	else
-	{
-		channelName = param.substr(0, space);
-		newTopic = param.substr(space + 1);
-	}
-
-	if (_channelList.find(channelName) == _channelList.end()) {
-        sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+    if (param.empty()) {
+        sendToClient(client, ":ircserv 461 " + client.getNickname() + " TOPIC :Not enough parameters\r\n");
         return ;
     }
 
-	Channel &c = _channelList[channelName];
-	if (space == std::string::npos)
-	{
-		sendToClient(client, "Channel " + channelName + " topic is: " + c.getTopic() + "\r\n");
-		return ;
-	}
+    std::string channelName;
+    std::string newTopic;
+    size_t space = param.find(' ');
 
-	if (c.isOperator(&client))
-	{
-		c.setTopic(newTopic);
-		sendToClient(client, "You have changed " + channelName + " topic to: " + newTopic + "\r\n");
-		c.broadcast(client.getNickname() + " has changed " + channelName + " topic to: " + newTopic + "\r\n");
-		return ;
-	}
-	else
-	{
-		if (c.isTopicLocked())
-		{
-			if (!c.isOperator(&client))
-			{
-				sendToClient(client, "You are not operator on the channel " + channelName + "\r\n");
-				return ;
-			}
-			c.setTopic(newTopic);
-			sendToClient(client, "You have changed " + channelName + " topic to: " + newTopic + "\r\n");
-			c.broadcast(client.getNickname() + " has changed " + channelName + " topic to: " + newTopic + "\r\n");
-		}
-	}
+    if (space == std::string::npos)
+        channelName = param;
+    else {
+        channelName = param.substr(0, space);
+        newTopic    = param.substr(space + 1);
+        if (!newTopic.empty() && newTopic[0] == ':')
+            newTopic = newTopic.substr(1);  // strip leading ':'
+    }
+
+    if (_channelList.find(channelName) == _channelList.end()) {
+        sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+        return ;
+    }
+    Channel &c = _channelList[channelName];
+
+    // viewing topic
+    if (space == std::string::npos) {
+        if (c.getTopic().empty())
+            sendToClient(client, ":ircserv 331 " + client.getNickname() + " " + channelName + " :No topic is set\r\n");
+        else {
+            std::ostringstream oss;
+            oss << c.getTopicTime();
+            sendToClient(client, ":ircserv 332 " + client.getNickname() + " " + channelName + " :" + c.getTopic() + "\r\n");
+            sendToClient(client, ":ircserv 333 " + client.getNickname() + " " + channelName + " " + c.getTopicSetter() + " " + oss.str() + "\r\n");
+        }
+        return ;
+    }
+
+    // setting topic
+    if (c.isTopicLocked() && !c.isOperator(&client)) {
+        sendToClient(client, ":ircserv 482 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n");
+        return ;
+    }
+    c.setTopic(newTopic, client.getNickname());
+    c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost TOPIC " + channelName + " :" + newTopic + "\r\n");
 }

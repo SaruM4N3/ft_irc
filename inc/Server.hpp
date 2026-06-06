@@ -132,6 +132,8 @@ class Server {
 
 	void handleQuit(Client &client);
 
+	void handlePing(Client &client, const std::string &param);
+
 	
 	/////////////////////////////////////////////////////////////////////////////////
 	//----------------------UTILS---------------------------------------------------/
