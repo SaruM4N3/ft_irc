@@ -18,6 +18,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 	std::string channelName;
 	std::string flag;
 	std::string arg;
+	std::string mode = "+";
 
 	if (param.empty())
 	{
@@ -49,6 +50,18 @@ void	Server::handleMode(Client &client, const std::string &param)
 		sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + channelName + " :You're not on that channel\r\n");
 		return ;
 	}
+
+	if (space[1] == space[0])
+	{
+		if (c.isInviteOnly())
+			mode += "i";
+		if (c.isTopicLocked())
+			mode += "t";
+		if (c.getUserLimit() != -1)
+			mode += "l";
+		sendToClient(client, ":ircserv 324 " + client.getNickname() + " " + channelName + " " + mode + "\r\n");
+	}
+
 	if (!c.isOperator(&client))
 	{
 		sendToClient(client, ":ircserv 482 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n");
@@ -65,7 +78,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 
 	if (flag[0] != '+' && flag[0] != '-')
 	{
-		sendToClient(client, ":ircserv 472 " + client.getNickname() + " " + channelName + " :Invalid Flag\r\n");
+		// sendToClient(client, ":ircserv 472 " + client.getNickname() + " " + channelName + " :Invalid Flag\r\n");
 		return ;
 	}
 
