@@ -11,7 +11,7 @@ void Server::handleCom(Client &client, const std::string &param) {
         return ;
     }
     
-    target     = param.substr(0, pos);
+    target  = param.substr(0, pos);
     msg     = param.substr(pos + 1);
 
     if ( target.empty() || msg.empty()){
@@ -24,8 +24,6 @@ void Server::handleCom(Client &client, const std::string &param) {
             sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + target + " :You're not on that channel\r\n");
             return ;
            }
-        if (msg.find("quoi"))
-           _channelList[target].broadcast(":BOT!BOT@localhost PRIVMSG " + target + " feur!\r\n");
         _channelList[target].broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost PRIVMSG " + target + " " + msg + "\r\n", &client);
     }
     else {

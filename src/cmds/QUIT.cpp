@@ -12,7 +12,7 @@ void	Server::handleQuit(Client &client)
 		{
 			channelNames.insert(c.getName());
 			c.removeMember(&client);
-			sendToClient(client, "You left channel " + c.getName() + "\r\n");
+			sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost PART " + c.getName() + " :" + reason + "\r\n");
 			c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost PART " + c.getName() + " :" + reason + "\r\n");
 		}
 	}

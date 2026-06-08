@@ -6,7 +6,7 @@
 /*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:15 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/01 09:24:13 by vaamonch         ###   ########.fr       */
+/*   Updated: 2026/06/06 17:42:56 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,7 @@ void Server::update() {
 				acceptClient();
 			else if (events[i].events & EPOLLIN)
 				handleClient(fd);
+			// else if (EPOLLOUT) => flush client.buffer
 		}
 	}
 }
