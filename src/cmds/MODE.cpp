@@ -66,6 +66,8 @@ void	Server::handleMode(Client &client, const std::string &param)
 			mode += "i";
 		if (c.isTopicLocked())
 			mode += "t";
+		if (c.getPassword() != "")
+			mode += "k";
 		if (c.getUserLimit() != -1)
 			mode += "l";
 		sendToClient(client, ":ircserv 324 " + client.getNickname() + " " + channelName + " " + mode + "\r\n");
