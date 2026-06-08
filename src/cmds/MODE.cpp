@@ -59,7 +59,6 @@ void	Server::handleMode(Client &client, const std::string &param)
 	else
 		flag = param.substr(space[0] + 1);
 
-	LOG_I(flag);
 	if (flag == channelName || flag == "")
 	{
 		if (c.isInviteOnly())
