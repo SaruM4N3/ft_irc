@@ -51,23 +51,6 @@ void	Server::handleMode(Client &client, const std::string &param)
 		return ;
 	}
 
-	if (space[1] == space[0])
-	{
-		if (c.isInviteOnly())
-			mode += "i";
-		if (c.isTopicLocked())
-			mode += "t";
-		if (c.getUserLimit() != -1)
-			mode += "l";
-		sendToClient(client, ":ircserv 324 " + client.getNickname() + " " + channelName + " " + mode + "\r\n");
-	}
-
-	if (!c.isOperator(&client))
-	{
-		sendToClient(client, ":ircserv 482 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n");
-		return ;
-	}
-
 	if (space[1] != space[0])
 	{
 		flag = param.substr(space[0] + 1, space[1]);
@@ -76,9 +59,28 @@ void	Server::handleMode(Client &client, const std::string &param)
 	else
 		flag = param.substr(space[0] + 1);
 
+	LOG_I(flag);
+	if (flag == channelName || flag == "")
+	{
+		if (c.isInviteOnly())
+			mode += "i";
+		if (c.isTopicLocked())
+			mode += "t";
+		if (c.getUserLimit() != -1)
+			mode += "l";
+		sendToClient(client, ":ircserv 324 " + client.getNickname() + " " + channelName + " " + mode + "\r\n");
+		return ;
+	}
+
+	if (!c.isOperator(&client))
+	{
+		sendToClient(client, ":ircserv 482 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n");
+		return ;
+	}
+
 	if (flag[0] != '+' && flag[0] != '-')
 	{
-		// sendToClient(client, ":ircserv 472 " + client.getNickname() + " " + channelName + " :Invalid Flag\r\n");
+		sendToClient(client, ":ircserv 472 " + client.getNickname() + " " + channelName + " :Invalid Flag\r\n");
 		return ;
 	}
 
