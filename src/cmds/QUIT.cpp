@@ -11,9 +11,8 @@ void	Server::handleQuit(Client &client)
 		if (c.hasMember(&client))
 		{
 			channelNames.insert(c.getName());
-			c.removeMember(&client);
-			sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost PART " + c.getName() + " :" + reason + "\r\n");
 			c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost PART " + c.getName() + " :" + reason + "\r\n");
+			c.removeMember(&client);
 		}
 	}
 	for (std::set<std::string>::const_iterator it = channelNames.begin(); it != channelNames.end(); it++)
