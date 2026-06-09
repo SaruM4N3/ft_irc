@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include "Server.hpp"
+#include "utils.hpp"
 
 static int	findFlag(char c)
 {
@@ -39,7 +40,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 
 	if (param.empty())
 	{
-		sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+		sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_NOSUCHCHANNEL));
         return ;
 	}
 
@@ -47,14 +48,14 @@ void	Server::handleMode(Client &client, const std::string &param)
 
 	if (_channelList.find(channelName) == _channelList.end())
 	{
-        sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+        sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_NOSUCHCHANNEL));
         return ;
     }
 
 	Channel	&c = _channelList[channelName];
 	if (!c.hasMember(&client))
 	{
-		sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + channelName + " :You're not on that channel\r\n");
+		sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_NOSUCHCHANNEL));
 		return ;
 	}
 
@@ -74,7 +75,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 
 	if (!c.isOperator(&client))
 	{
-		sendToClient(client, ":ircserv 482 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n");
+		sendToClient(client, ":ircserv 482 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_CHANOPRIVSNEEDED));
 		return ;
 	}
 

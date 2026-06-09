@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "utils.hpp"
 
 void Server::handlePart(Client &client, const std::string &param) {
 	
@@ -14,14 +15,14 @@ void Server::handlePart(Client &client, const std::string &param) {
     }
 
 	if (_channelList.find(channelName) == _channelList.end()) {
-        sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+        sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_NOSUCHCHANNEL));
         return ;
     }
 
     Channel &c = _channelList[channelName];
 
     if (!c.hasMember(&client)) {
-        sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + channelName + " :You're not on that channel\r\n");
+        sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_NOSUCHCHANNEL));
         return ;
     }
 

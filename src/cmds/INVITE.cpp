@@ -1,14 +1,5 @@
 #include "Server.hpp"
-
-/*
-// 341  RPL_INVITING		 :		
-// 461  ERR_NEEDMOREPARAMS   :Not enough parameters
-// 401  ERR_NOSUCHNICK       :No such nick
-// 403  ERR_NOSUCHCHANNEL    :No such channel
-// 442  ERR_NOTONCHANNEL     :You're not on that channel
-// 482  ERR_CHANOPRIVSNEEDED :You're not channel operator
-// 443  ERR_USERONCHANNEL    :User already on channel
-*/
+#include "utils.hpp"
 
 void	Server::handleInvite(Client &client, const std::string &param)
 {
@@ -18,8 +9,7 @@ void	Server::handleInvite(Client &client, const std::string &param)
 
 	if (space == std::string::npos)
 	{
-		// 461  ERR_NEEDMOREPARAMS   :Not enough parameters
-		sendToClient(client, ":ircserver 461 " + client.getNickname() + " :Not enough parameters\r\n");
+		sendToClient(client, ":ircserv 461 " + client.getNickname() + IRC::toString(IRC::ERR_NEEDMOREPARAMS));
 		return ;
 	}
 
@@ -29,36 +19,32 @@ void	Server::handleInvite(Client &client, const std::string &param)
 
 	if (channelName.empty() || target.empty())
 	{
-		// 461  ERR_NEEDMOREPARAMS   :Not enough parameters
-		sendToClient(client, ":ircserver 461 " + client.getNickname() + " :Not enough parameters\r\n");
+		sendToClient(client, ":ircserv 461 " + client.getNickname() + IRC::toString(IRC::ERR_NEEDMOREPARAMS));
 		return ;
 	}
 
 	if (_channelList.find(channelName) == _channelList.end())
 	{
-		// 403  ERR_NOSUCHCHANNEL    :No such channel
-        sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+        sendToClient(client, ":ircserv 403 " + client.getNickname() + IRC::toString(IRC::ERR_NOSUCHCHANNEL));
         return ;
     }
 
 	Channel &c = _channelList[channelName];
 	if (!c.hasMember(&client))
 	{
-		// 442  ERR_NOTONCHANNEL     :You're not on that channel
-		sendToClient(client, ":ircserver 442 " + client.getNickname() + " " + channelName + " :You're not on that channel\r\n");
+		sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_NOSUCHCHANNEL));
 		return ;
 	}
 	if (!c.isOperator(&client))
 	{
-		// 482  ERR_CHANOPRIVSNEEDED :You're not channel operator
-		sendToClient(client, ":ircserver 482 " + client.getNickname() + " " + target + " :You're not channel operator\r\n");
+		sendToClient(client, ":ircserv 482 " + client.getNickname() + " " + target + IRC::toString(IRC::ERR_CHANOPRIVSNEEDED));
 		return ;
 	}
 
 	Client *dest = findClient(target);
 	if (!dest)
 	{
-		sendToClient(client, ":ircserver 401 " + client.getNickname() + " " + target + " :No such nick\r\n");
+		sendToClient(client, ":ircserv 401 " + client.getNickname() + " " + target + IRC::toString(IRC::ERR_NOSUCHNICK));
         return ;	
 	}
 

@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "utils.hpp"
 
 void	Server::handleKick(Client &client, const std::string &param)
 {
@@ -23,31 +24,31 @@ void	Server::handleKick(Client &client, const std::string &param)
 
 	if (channelName.empty() || target.empty() || space == std::string::npos)
 	{
-		sendToClient(client, ":ircserv 461 " + client.getNickname() + " KICK :Not enough parameters\r\n");
+		sendToClient(client, ":ircserv 461 " + client.getNickname() + IRC::toString(IRC::ERR_NEEDMOREPARAMS));
 		return ;
 	}
 
 	if (_channelList.find(channelName) == _channelList.end()) {
-        sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+        sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_NOSUCHCHANNEL));
         return ;
     }
 
 	Channel &c = _channelList[channelName];
 	if (!c.hasMember(&client))
 	{
-		sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + channelName + " :You're not on that channel\r\n");
+		sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_NOSUCHCHANNEL));
 		return ;
 	}
 	if (!c.isOperator(&client))
 	{
-		sendToClient(client, ":ircserv 482 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n");
+		sendToClient(client, ":ircserv 482 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_CHANOPRIVSNEEDED));
 		return ;
 	}
 
 	Client *dest = findClient(target);
 	if (!dest)
 	{
-		sendToClient(client, ":ircserv 441 " + client.getNickname() + " " + target + " " + channelName + " :They aren't on that channel\r\n");
+		sendToClient(client, ":ircserv 441 " + client.getNickname() + " " + target + " " + channelName + IRC::toString(IRC::ERR_USERNOTINCHANNEL));
         return ;	
 	}
 

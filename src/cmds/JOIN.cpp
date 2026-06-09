@@ -1,13 +1,14 @@
 #include "Server.hpp"
+#include "utils.hpp"
 
 void Server::handleChannel(Client& client, const std::string& param){
 	
 	if (param.empty()){
-        sendToClient(client, ":ircserv 461 " + client.getNickname() + " :Not enough parameters\r\n");
+        sendToClient(client, ":ircserv 461 " + client.getNickname() + IRC::toString(IRC::ERR_NEEDMOREPARAMS));
 		return;
 	}
 	if (param[0] != '#' || param.size() < 2){
-		sendToClient(client, ":ircserv 476 " + client.getNickname() + " " + param + " :Bad Channel Mask\r\n");
+		sendToClient(client, ":ircserv 476 " + client.getNickname() + " " + param + IRC::toString(IRC::ERR_BADCHANMASK));
 		return;
 	}
 
@@ -28,25 +29,25 @@ void Server::handleChannel(Client& client, const std::string& param){
     else {
 		Channel &c = _channelList[channelName];
 		if (c.hasMember(&client)){
-			sendToClient(client, ":ircserv 443 " + client.getNickname() + " " + channelName + " :You are already a member\r\n");
+			sendToClient(client, ":ircserv 443 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_USERONCHANNEL));
 			return ;
 		}
 		if (c.getPassword().compare("")){
 			if (key.compare(c.getPassword()))
 			{
-				sendToClient(client, ":ircserv 475 " + client.getNickname() + " " + channelName + " :Bad channel key\r\n");
+				sendToClient(client, ":ircserv 475 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_BADCHANNELKEY));
 				return ;
 			}
 		}
 		if (c.isInviteOnly()){
 			if (!c.isInvited(client.getNickname())){
-				sendToClient(client, ":ircserv 473 " + client.getNickname() + " " + channelName + " :Invite only channel\r\n");
+				sendToClient(client, ":ircserv 473 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_INVITEONLYCHAN));
 				return ;
 			}
 		}
 		if (c.getUserLimit() != -1){
 			if (c.getMemberCount() >= static_cast<std::size_t>(c.getUserLimit())){
-				sendToClient(client, ":ircserv 471 " + client.getNickname() + " " + channelName + " :Channel is full\r\n");
+				sendToClient(client, ":ircserv 471 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_CHANNELISFULL));
 				return ;
 			}
 		}
