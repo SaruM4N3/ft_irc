@@ -5,3 +5,4 @@ ircserv
 en.subject.pdf
 compile_commands.json
 debug.log
+srcs.mk

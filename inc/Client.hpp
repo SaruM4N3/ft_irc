@@ -6,7 +6,7 @@
 /*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/14 14:33:22 by zsonie            #+#    #+#             */
-/*   Updated: 2026/04/21 19:47:59 by zsonie           ###   ########.fr       */
+/*   Updated: 2026/06/09 07:51:12 by zsonie           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ class Client {
 
 	//
 	void appendToBuffer(const std::string& data);
+	void appendToOutBuffer(const std::string& data);
 	std::string extractMessage();
 
 	// get
@@ -41,11 +42,14 @@ class Client {
 	bool isMessageReceived() const;
 	bool isAuthenticated() const;
 	bool isRegistered() const;
+	bool isWaiting() const;
+	void flushOutBuffer();
 
    private:
 	int _fd;
 	struct sockaddr_in _addr;
 	std::string _inBuffer;
+	std::string _outBuffer;
 
 	bool _authenticated;
 	bool _registered;

@@ -6,7 +6,7 @@
 /*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:20 by zsonie            #+#    #+#             */
-/*   Updated: 2026/04/23 17:17:16 by zsonie           ###   ########.fr       */
+/*   Updated: 2026/06/09 06:10:28 by zsonie           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,11 +45,15 @@ class Server {
 	//----------------------EPOLL---------------------------------------------------/
 	/////////////////////////////////////////////////////////////////////////////////
 	/**
-	 *	@brief Ask kernel to watch this fd.
+	 *	@brief watch this fd.
 	 */
 	void epollAdd(int fd, uint32_t events);
 	/**
-	 *	@brief Ask kernel to stop watching this fd.
+	 *	@brief modify watched events by an fd.
+	 */
+	void epollMod(int fd, uint32_t events);
+	/**
+	 *	@brief stop watching this fd.
 	 */
 	void epollDel(int fd);
 
@@ -65,6 +69,10 @@ class Server {
 	 * display the message
 	 */
 	void handleClient(int fd);
+	/**
+	 *	@brief Flush this client buffer.
+	 */
+	void flushClient(Client& client);
 	/**
 	 *	@brief Clean everything related to this client.
 	 */
