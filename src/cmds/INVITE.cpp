@@ -63,8 +63,6 @@ void	Server::handleInvite(Client &client, const std::string &param)
 	}
 
 	c.addInvitation(target);
-	// optionnal broadcast invitation notice
-	// c.broadcast(":ircserv NOTICE " + channelName + " :" + client.getNickname() + " invited " + target + " to the channel\r\n");
 	sendToClient(client, ":ircserv 341 " + client.getNickname() + " " + target + " " + channelName + "\r\n");
 	sendToClient(*dest, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost INVITE " + target + " :" + channelName + "\r\n");
 }

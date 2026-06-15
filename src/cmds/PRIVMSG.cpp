@@ -23,7 +23,11 @@ void Server::handleCom(Client &client, const std::string &param) {
         if (!_channelList[target].hasMember(&client)) {
             sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + target + " :You're not on that channel\r\n");
             return ;
-           }
+            }
+        //my absolute banger of a BOT
+        else if (msg.find("quoi")){
+           sendToClient(client, ":BOT!BOT@localhost PRIVMSG " + target + " feur!\r\n");
+        }
         _channelList[target].broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost PRIVMSG " + target + " " + msg + "\r\n", &client);
     }
     else {

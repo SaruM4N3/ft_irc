@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
+/*   By: erbuffet <erbuffet@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:15 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/06 17:42:56 by vaamonch         ###   ########.fr       */
+/*   Updated: 2026/06/10 20:31:31 by erbuffet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,7 @@ void Server::init() {
 	if (_epFd == -1)
 		throw std::runtime_error("epoll: " + std::string(std::strerror(errno)));
 	epollAdd(_serverFd, EPOLLIN);
+		
 }
 
 void Server::update() {
@@ -87,17 +88,15 @@ void Server::update() {
 		if (n == -1)
 			throw std::runtime_error("epoll_wait: " +
 									 std::string(strerror(errno)));
-
 		for (int i = 0; i < n; i++) {
 			int fd = events[i].data.fd;
-
+	
 			if (events[i].events & (EPOLLERR | EPOLLHUP))
 				removeClient(fd);
 			else if (fd == _serverFd)
 				acceptClient();
 			else if (events[i].events & EPOLLIN)
 				handleClient(fd);
-			// else if (EPOLLOUT) => flush client.buffer
 		}
 	}
 }

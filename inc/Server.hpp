@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
+/*   By: erbuffet <erbuffet@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:20 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/06 17:52:49 by vaamonch         ###   ########.fr       */
+/*   Updated: 2026/06/10 20:27:28 by erbuffet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,17 @@ class Server {
 	 *	@brief Clean everything related to this client.
 	 */
 	void removeClient(int fd);
+
+	/////////////////////////////////////////////////////////////////////////////////
+	//----------------------BOT-----------------------------------------------------/
+	/////////////////////////////////////////////////////////////////////////////////
+
+	// void Server::botPart(Client& client, const std::string param);
+
+	// void Server::botMessage(Client& client, std::string channel, const std::string msg);
+
+	// void Server::botInvite(Client& client, const std::string param);
+
 
 	/////////////////////////////////////////////////////////////////////////////////
 	//----------------------CMDS----------------------------------------------------/
