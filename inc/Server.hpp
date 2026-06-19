@@ -6,7 +6,7 @@
 /*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:20 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/19 23:58:47 by vaamonch         ###   ########.fr       */
+/*   Updated: 2026/06/20 01:40:30 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,8 +152,10 @@ class Server {
 	void handleMode(Client &client, const std::string &param);
 
 	void handleQuit(Client &client);
-
 	void handlePing(Client &client, const std::string &param);
+	
+	void handleQuitWrapper(Client &client, const std::string &param);
+	typedef void (Server::*CmdHandler)(Client&, const std::string&);
 
 	
 	/////////////////////////////////////////////////////////////////////////////////
@@ -184,7 +186,8 @@ class Server {
 	int _serverFd;									///< Listening fd
 	int _epFd;										///< Epoll fd
 	std::map<int, Client* > _clientMap;				///< Client map
-	std::map<std::string, Channel > _channelList; 	///< list of Channel in server
+	std::map<std::string, Channel > _channelList; 	///< List of Channel in server
+	std::map<std::string, CmdHandler> _cmdHandlers;	///< Dispatch table
 };
 
 #endif

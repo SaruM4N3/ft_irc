@@ -6,7 +6,7 @@
 /*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 06:17:53 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/20 00:34:14 by vaamonch         ###   ########.fr       */
+/*   Updated: 2026/06/20 01:43:37 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,17 @@ Server::Server(int port, const std::string& password)
 	: _port(port), _password(password), _serverFd(-1), _epFd(-1) {
 	LOG_I("Constructor: Server");
 	LOG_D("Port: " + toString(_port) + " Password: " + _password);
+	_cmdHandlers["PASS"]    = &Server::handlePass;
+    _cmdHandlers["NICK"]    = &Server::handleNickname;
+    _cmdHandlers["USER"]    = &Server::handleUsername;
+    _cmdHandlers["JOIN"]    = &Server::handleChannel;
+    _cmdHandlers["PRIVMSG"] = &Server::handleCom;
+    _cmdHandlers["PART"]    = &Server::handlePart;
+    _cmdHandlers["INVITE"]  = &Server::handleInvite;
+    _cmdHandlers["KICK"]    = &Server::handleKick;
+    _cmdHandlers["TOPIC"]   = &Server::handleTopic;
+    _cmdHandlers["MODE"]    = &Server::handleMode;
+	_cmdHandlers["QUIT"]    = &Server::handleQuitWrapper;
 	init();
 }
 
@@ -202,36 +213,23 @@ void Server::processMessage(Client& client, const std::string& msg) {
 	size_t spacePos = msg.find(' ');
 	if (spacePos != std::string::npos) params = msg.substr(spacePos + 1);
 
-	// handleCmds
 	LOG_I("CMD=[" + cmd + "] PARAMS=[" + params + "]");
-	if (cmd == "PASS")
-		handlePass(client, params);
-	else if (!client.isAuthenticated()) {
+
+	if (!client.isAuthenticated() && cmd != "PASS") {
 		sendToClient(client,
 					 "Error: You must send PASS before any other actions\r\n");
 		return;
-	} else if (cmd == "NICK")
-		handleNickname(client, params);
-	else if (cmd == "USER")
-		handleUsername(client, params);
-	else if (cmd == "JOIN")
-		handleChannel(client, params);
-	else if (cmd == "PRIVMSG")
-		handleCom(client, params);
-	else if (cmd == "PART")
-		handlePart(client, params);
-	else if (cmd == "INVITE")
-		handleInvite(client, params);
-	else if (cmd == "KICK")
-		handleKick(client, params);
-	else if (cmd == "TOPIC")
-		handleTopic(client, params);
-	else if (cmd == "MODE")
-		handleMode(client, params);
-	else if (cmd == "QUIT")
-		handleQuit(client);
-	else if (cmd == "PING")
-		handlePing(client, params);
+	}
+
+	std::map<std::string, CmdHandler>::iterator it = _cmdHandlers.find(cmd);
+	if (it != _cmdHandlers.end()) {
+		(this->*(it->second))(client, params);
+	}
+}
+
+void Server::handleQuitWrapper(Client &client, const std::string &param) {
+	(void)param;
+	handleQuit(client);
 }
 
 void Server::handlePass(Client& client, const std::string& param) {
