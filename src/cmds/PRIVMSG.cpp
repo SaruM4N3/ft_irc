@@ -24,11 +24,16 @@ void Server::handleCom(Client &client, const std::string &param) {
             sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + target + " :You're not on that channel\r\n");
             return ;
             }
-        //my absolute banger of a BOT
-        else if (msg.find("quoi")){
-           sendToClient(client, ":BOT!BOT@localhost PRIVMSG " + target + " feur!\r\n");
-        }
         _channelList[target].broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost PRIVMSG " + target + " " + msg + "\r\n", &client);
+
+        //*our absolute banger of a BOT
+        if (msg.find("quoi") != std::string::npos){
+            std::string _botmsg = msg;
+            while (_botmsg.find("quoi") != std::string::npos)
+                _botmsg.replace(_botmsg.find("quoi"), 4, "feur" );
+
+            _channelList[target].broadcast(":BOT!BOT@localhost PRIVMSG " + target + " " + _botmsg + "\r\n");
+        }
     }
     else {
         Client *dest = findClient(target);

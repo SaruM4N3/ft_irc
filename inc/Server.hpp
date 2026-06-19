@@ -15,7 +15,7 @@
 
 // INC
 #include "Client.hpp"
-# include "Channel.hpp"
+#include "Channel.hpp"
 #include <map>
 #include <netinet/in.h>
 #include <string>
