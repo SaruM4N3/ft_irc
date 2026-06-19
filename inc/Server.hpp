@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: erbuffet <erbuffet@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:20 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/19 23:51:41 by erbuffet         ###   ########.fr       */
+/*   Updated: 2026/06/19 23:58:47 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,11 +47,15 @@ class Server {
 	//----------------------EPOLL---------------------------------------------------/
 	/////////////////////////////////////////////////////////////////////////////////
 	/**
-	 *	@brief Ask kernel to watch this fd.
+	 *	@brief watch this fd.
 	 */
 	void epollAdd(int fd, uint32_t events);
 	/**
-	 *	@brief Ask kernel to stop watching this fd.
+	 *	@brief modify watched events by an fd.
+	 */
+	void epollMod(int fd, uint32_t events);
+	/**
+	 *	@brief stop watching this fd.
 	 */
 	void epollDel(int fd);
 
@@ -67,6 +71,10 @@ class Server {
 	 * display the message
 	 */
 	void handleClient(int fd);
+	/**
+	 *	@brief Flush this client buffer.
+	 */
+	void flushClient(Client& client);
 	/**
 	 *	@brief Clean everything related to this client.
 	 */

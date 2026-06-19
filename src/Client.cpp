@@ -6,12 +6,13 @@
 /*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/14 14:33:19 by zsonie            #+#    #+#             */
-/*   Updated: 2026/04/21 20:09:50 by zsonie           ###   ########.fr       */
+/*   Updated: 2026/06/09 06:20:37 by zsonie           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 #include "Debug.hpp"
+#include <sys/socket.h>
 
 // constructor/destructor
 Client::Client(int fd, struct sockaddr_in addr)
@@ -38,6 +39,7 @@ bool Client::isMessageReceived() const {
 }
 bool Client::isAuthenticated() const { return _authenticated; }
 bool Client::isRegistered() const { return _registered; }
+bool Client::isWaiting() const { return !_outBuffer.empty(); }
 
 // set
 void Client::setNickname(std::string nick) { _nick = nick; }
@@ -47,3 +49,12 @@ void Client::setRegistered(bool reg) { _registered = reg; }
 
 // utils
 void Client::appendToBuffer(const std::string& data) { _inBuffer += data; }
+void Client::appendToOutBuffer(const std::string& data) { _outBuffer += data; }
+
+void Client::flushOutBuffer() {
+	if (_outBuffer.empty()) return;
+	int bytes = send(_fd, _outBuffer.c_str(), _outBuffer.size(), 0);
+	if (bytes > 0)
+		_outBuffer.erase(0, bytes);
+}
+
