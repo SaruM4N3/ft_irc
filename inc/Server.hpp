@@ -6,7 +6,7 @@
 /*   By: erbuffet <erbuffet@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:20 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/10 20:27:28 by erbuffet         ###   ########.fr       */
+/*   Updated: 2026/06/19 23:49:21 by erbuffet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -169,6 +169,7 @@ class Server {
 	 *	@brief Just an utility function to send a message to the client.
 	 */
 	void sendToClient(Client& client, const std::string& msg);
+
 	/**
 	 *	@brief Add a flag O_NONBLOCK to already existing flags.
 	 *	It's used to cahnge filedescriptors to avoid I/O calls to wait for data.

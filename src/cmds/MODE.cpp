@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include "Server.hpp"
+#include "utils.hpp"
 
 static int	findFlag(char c)
 {
@@ -13,6 +14,23 @@ static int	findFlag(char c)
 	return (-1);
 }
 
+static void	parseParam(const std::string param, std::string& channelName, std::string& flag, std::string& arg)
+{
+	size_t 	space[2];
+	space[0] = param.find_first_of(' ');
+	space[1] = param.find_last_of(' ');
+
+	channelName = param.substr(0, space[0]);
+
+	if (space[1] != space[0])
+	{
+		flag = param.substr(space[0] + 1, space[1]);
+		arg = param.substr(space[1] + 1);
+	}
+	else
+		flag = param.substr(space[0] + 1);
+}
+
 void	Server::handleMode(Client &client, const std::string &param)
 {
 	std::string channelName;
@@ -22,42 +40,24 @@ void	Server::handleMode(Client &client, const std::string &param)
 
 	if (param.empty())
 	{
-		sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+		sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_NOSUCHCHANNEL));
         return ;
 	}
 
-	size_t 	space[2];
-	space[0] = param.find_first_of(' ');
-	space[1] = param.find_last_of(' ');
+	parseParam(param, channelName, flag, arg);
 
-	// PROBLEMS : send NO such channel at channel creation and join of existing channel if removed : invalid flag error
-	// if (space[0] == std::string::npos || space[1] == std::string::npos)
-	// {
-	// 	sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
-    //     return ;
-	// }
-
-	channelName = param.substr(0, space[0]);
 	if (_channelList.find(channelName) == _channelList.end())
 	{
-        sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+        sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_NOSUCHCHANNEL));
         return ;
     }
 
 	Channel	&c = _channelList[channelName];
 	if (!c.hasMember(&client))
 	{
-		sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + channelName + " :You're not on that channel\r\n");
+		sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_NOSUCHCHANNEL));
 		return ;
 	}
-
-	if (space[1] != space[0])
-	{
-		flag = param.substr(space[0] + 1, space[1]);
-		arg = param.substr(space[1] + 1);
-	}
-	else
-		flag = param.substr(space[0] + 1);
 
 	if (flag == channelName || flag == "")
 	{
@@ -75,7 +75,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 
 	if (!c.isOperator(&client))
 	{
-		sendToClient(client, ":ircserv 482 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n");
+		sendToClient(client, ":ircserv 482 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_CHANOPRIVSNEEDED));
 		return ;
 	}
 
@@ -96,8 +96,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 			else
 			{
 				c.setInviteOnly(true);
-				sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +i " + arg + "\r\n");
-				c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +i " + arg + "\r\n", &client);
+				c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +i " + arg + "\r\n");
 			}
 		}
 		else
@@ -107,8 +106,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 			else
 			{
 				c.setInviteOnly(false);
-				sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -i " + arg + "\r\n");
-				c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -i " + arg + "\r\n", &client);
+				c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -i " + arg + "\r\n");
 			}
 		}
 		break;
@@ -121,8 +119,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 			else
 			{
 				c.setInviteOnly(true);
-				sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +t " + arg + "\r\n");
-				c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +t " + arg + "\r\n", &client);
+				c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +t " + arg + "\r\n");
 			}
 		}
 		else
@@ -132,8 +129,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 			else
 			{
 				c.setInviteOnly(false);
-				sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -t " + arg + "\r\n");
-				c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -t " + arg + "\r\n", &client);
+				c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -t " + arg + "\r\n");
 			}
 		}
 		break;
@@ -147,14 +143,12 @@ void	Server::handleMode(Client &client, const std::string &param)
 				break;
 			}
 			c.setPassword(arg);
-			sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +k " + arg + "\r\n");
-			c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +k " + arg + "\r\n", &client);
+			c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +k " + arg + "\r\n");
 		}
 		else
 		{
 			c.setPassword("");
-			sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -k " + arg + "\r\n");
-			c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -k " + arg + "\r\n", &client);
+			c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -k " + arg + "\r\n");
 		}
 		break;
 
@@ -179,8 +173,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 				break;
 			}
 			c.OpPrivilege(arg, 1);
-			sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +o " + arg + "\r\n");
-			c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +o " + arg + "\r\n", &client);
+			c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +o " + arg + "\r\n");
 		}
 		else
 		{
@@ -190,8 +183,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 				break;
 			}
 			c.OpPrivilege(arg, 0);
-			sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -o " + arg + "\r\n");
-			c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -o " + arg + "\r\n", &client);
+			c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -o " + arg + "\r\n");
 		}
 		break;
 
@@ -199,14 +191,12 @@ void	Server::handleMode(Client &client, const std::string &param)
 		if (flag[0] == '+')
 		{
 			c.setUserLimit(std::atoi(arg.c_str()));
-			sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +l " + arg + "\r\n");
-			c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +l " + arg + "\r\n", &client);
+			
 		}
 		else
 		{
 			c.setUserLimit(-1);
-			sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -l " + arg + "\r\n");
-			c.broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -l " + arg + "\r\n", &client);
+			c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -l " + arg + "\r\n");
 		}
 		break;
 

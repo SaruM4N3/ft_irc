@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "utils.hpp"
 
 void Server::handleTopic(Client &client, const std::string &param) {
 
@@ -21,7 +22,7 @@ void Server::handleTopic(Client &client, const std::string &param) {
     }
 
     if (_channelList.find(channelName) == _channelList.end()) {
-        sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+        sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_NOSUCHCHANNEL));
         return ;
     }
     Channel &c = _channelList[channelName];
@@ -41,7 +42,7 @@ void Server::handleTopic(Client &client, const std::string &param) {
 
     // setting topic
     if (c.isTopicLocked() && !c.isOperator(&client)) {
-        sendToClient(client, ":ircserv 482 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n");
+        sendToClient(client, ":ircserv 482 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_CHANOPRIVSNEEDED));
         return ;
     }
     c.setTopic(newTopic, client.getNickname());

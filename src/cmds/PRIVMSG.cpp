@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "utils.hpp"
 
 void Server::handleCom(Client &client, const std::string &param) {
     
@@ -7,7 +8,7 @@ void Server::handleCom(Client &client, const std::string &param) {
     
     size_t pos = param.find(' ');
     if ( pos == std::string::npos){
-        sendToClient(client, ":ircserv 411 " + client.getNickname() + " :No text to send\r\n");
+        sendToClient(client, ":ircserv 411 " + client.getNickname() + IRC::toString(IRC::ERR_NORECIPIENT));
         return ;
     }
     
@@ -15,13 +16,13 @@ void Server::handleCom(Client &client, const std::string &param) {
     msg     = param.substr(pos + 1);
 
     if ( target.empty() || msg.empty()){
-        sendToClient(client, ":ircserv 411 " + client.getNickname() + " :No text to send\r\n");
+        sendToClient(client, ":ircserv 411 " + client.getNickname() + IRC::toString(IRC::ERR_NORECIPIENT));
         return ;
     }
     
     if (target[0] == '#') {
         if (!_channelList[target].hasMember(&client)) {
-            sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + target + " :You're not on that channel\r\n");
+            sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + target + IRC::toString(IRC::ERR_NOTONCHANNEL));
             return ;
             }
         _channelList[target].broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost PRIVMSG " + target + " " + msg + "\r\n", &client);
@@ -38,7 +39,7 @@ void Server::handleCom(Client &client, const std::string &param) {
     else {
         Client *dest = findClient(target);
         if (!dest) {
-            sendToClient(client, ":ircserv 401 " + client.getNickname() + " " + target + " :No such nick\r\n");
+            sendToClient(client, ":ircserv 401 " + client.getNickname() + " " + target + IRC::toString(IRC::ERR_NOSUCHNICK));
             return ;
         }
         sendToClient(*dest, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost PRIVMSG " + target + " " + msg + "\r\n");
