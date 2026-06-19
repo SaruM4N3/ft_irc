@@ -6,7 +6,7 @@
 /*   By: erbuffet <erbuffet@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:20 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/19 23:49:21 by erbuffet         ###   ########.fr       */
+/*   Updated: 2026/06/19 23:51:41 by erbuffet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,16 +71,6 @@ class Server {
 	 *	@brief Clean everything related to this client.
 	 */
 	void removeClient(int fd);
-
-	/////////////////////////////////////////////////////////////////////////////////
-	//----------------------BOT-----------------------------------------------------/
-	/////////////////////////////////////////////////////////////////////////////////
-
-	// void Server::botPart(Client& client, const std::string param);
-
-	// void Server::botMessage(Client& client, std::string channel, const std::string msg);
-
-	// void Server::botInvite(Client& client, const std::string param);
 
 
 	/////////////////////////////////////////////////////////////////////////////////
