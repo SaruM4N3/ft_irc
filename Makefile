@@ -39,6 +39,9 @@ endif
 
 .SILENT:
 
+srcs.mk:
+	$(call gen_srcs_file)
+
 .PHONY: all
 all: gen_srcs
 all: $(NAME)
@@ -58,6 +61,7 @@ bonus: all
 ###########################################################
 
 define gen_srcs_file
+	$(shell touch srcs.mk)
 	$(shell echo "# Auto-generated file, do not edit!" > srcs.mk)
 	$(shell echo -n "SRCS += " >> srcs.mk)
 	$(shell find src -type f -name "*.cpp" | sed "s/.*_bonus.cpp//" | sed '$$ ! s/$$/ \\/' >> srcs.mk)
@@ -96,6 +100,7 @@ clean:
 .PHONY: fclean
 fclean: clean
 	rm -f $(NAME)
+	rm -f srcs.mk
 
 .PHONY: re
 re: fclean all
