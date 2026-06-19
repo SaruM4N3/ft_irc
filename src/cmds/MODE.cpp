@@ -69,6 +69,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 			mode += "k";
 		if (c.getUserLimit() != -1)
 			mode += "l";
+		sendToClient(client, ":ircserv MODE " + channelName + " " + mode + "\r\n");
 		sendToClient(client, ":ircserv 324 " + client.getNickname() + " " + channelName + " " + mode + "\r\n");
 		return ;
 	}

@@ -6,7 +6,7 @@
 /*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 06:17:53 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/20 00:00:31 by vaamonch         ###   ########.fr       */
+/*   Updated: 2026/06/20 00:34:14 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -259,7 +259,8 @@ void Server::handleNickname(Client& client, const std::string& param) {
 }
 
 void Server::handleUsername(Client& client, const std::string& param) {
-	client.setUsername(param);
+	std::string username = param.substr(0, param.find(' '));
+	client.setUsername(username);
 	if (!client.getNickname().empty() && !client.isRegistered()) {
 		client.setRegistered(true);
 		sendToClient(client, ":ircserv 001 " + client.getNickname() +
