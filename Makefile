@@ -43,7 +43,7 @@ srcs.mk:
 	$(call gen_srcs_file)
 
 .PHONY: all
-all: gen_srcs
+all: gen_srcs FORCE
 all: $(NAME)
 
 test: export CFLAGS += -DUNITTEST=1
@@ -68,7 +68,7 @@ define gen_srcs_file
 endef
 
 .PHONY: gen_srcs
-gen_srcs:
+gen_srcs: FORCE
 	$(call gen_srcs_file)
 
 .PHONY: cachegrind
@@ -108,5 +108,7 @@ re: fclean all
 .PHONY: debug
 debug: CXXFLAGS += -DDEBUG_MODE=1
 debug: all
+
+FORCE:
 
 .DEFAULT_GOAL = all
