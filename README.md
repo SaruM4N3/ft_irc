@@ -115,8 +115,9 @@ telnet localhost 4242
 
 AI tools (such as Claude) were used during this project for the following tasks:
 
-- Generating boilerplate code structures (Makefile, class skeletons) — reviewed and adapted manually
-- Clarifying IRC protocol behavior and edge cases in RFCs
+- Generating a IRC numerics code table
+- Helping to implement a dispatch table for IRC commands
+- Code review
 - Helping draft and format this README
 
-All AI-generated content was reviewed, tested, and validated by the team before inclusion. No code was blindly copy-pasted: every function and logic block was understood, discussed with peers, and verified through testing.
+All AI-generated content was reviewed, adapted manually, tested, and validated by the team before inclusion. No code was blindly copy-pasted: every function and logic block was understood, discussed with peers, and verified through testing.
