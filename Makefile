@@ -10,10 +10,20 @@ INCLUDES = -I $(INC_DIR)
 
 SRCS =
 SRCS_BONUS =
-include srcs.mk
+$(shell \
+    if [ ! -s srcs.mk ]; then \
+        touch srcs.mk; \
+        echo "# Auto-generated file, do not edit!" > srcs.mk; \
+        printf "SRCS += " >> srcs.mk; \
+        find src -type f -name "*.cpp" | sed "s/.*_bonus.cpp//" | sed '$$! s/$$/ \\/' >> srcs.mk; \
+    fi \
+)
+
+-include srcs.mk
 
 OBJS = ${patsubst %.cpp,$(DIR_OBJ)%.o, $(shell echo $(SRCS) | sed "s|$(SRC_DIR)||g")}
 DEPS = ${patsubst %.o,%.d, $(OBJS)}
+
 
 -include $(DEPS)
 

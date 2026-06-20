@@ -93,7 +93,7 @@ telnet localhost 4242
 |----------|--------------------------------------------------|
 | `PART`   | Part from a channel                              |
 | `QUIT`   | Disconnect from the server                       |
-| `PING`   | Change channel modes (see below)                 |
+| `PING`   | Ping another user			                      |
 
 
 - File transfer (DCC)
