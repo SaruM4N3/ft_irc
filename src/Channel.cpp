@@ -95,7 +95,7 @@ void Channel::broadcast(const std::string &msg){
 
 void Channel::broadcastE(const std::string &msg, Client* client){
     for (std::map<Client*, bool>::const_iterator it = _members.begin(); it != _members.end(); it++){
-        if (it->first->getUsername() != client->getUsername())
+        if (it->first->getNickname() != client->getNickname())
             ::send(it->first->getFd(), msg.c_str(), msg.size(), 0);
     }
 }

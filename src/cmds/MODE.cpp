@@ -69,7 +69,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 			mode += "k";
 		if (c.getUserLimit() != -1)
 			mode += "l";
-		sendToClient(client, ":ircserv MODE " + channelName + " " + mode + "\r\n");
+		// sendToClient(client, ":ircserv MODE " + channelName + " " + mode + "\r\n");
 		sendToClient(client, ":ircserv 324 " + client.getNickname() + " " + channelName + " " + mode + "\r\n");
 		return ;
 	}
@@ -119,7 +119,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 				sendToClient(client, "Channel " + c.getName() + " topic is already Locked\r\n");
 			else
 			{
-				c.setInviteOnly(true);
+				c.setTopicLocked(true);
 				c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +t " + arg + "\r\n");
 			}
 		}
@@ -129,7 +129,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 				sendToClient(client, "Channel " + c.getName() + " topic is already Unlock\r\n");
 			else
 			{
-				c.setInviteOnly(false);
+				c.setTopicLocked(false);
 				c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -t " + arg + "\r\n");
 			}
 		}
