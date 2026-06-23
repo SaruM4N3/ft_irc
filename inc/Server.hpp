@@ -6,7 +6,7 @@
 /*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:20 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/23 03:10:01 by zsonie           ###   ########lyon.fr   */
+/*   Updated: 2026/06/23 15:41:01 by zsonie           ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,9 +164,8 @@ class Server {
 	/**
 	 * @brief utility function that loop through _clientMap to find a client
 	 */
-	Client* findClientByNickname(const std::string &nickname);
+	Client* findClient(const std::string &nickname);
 
-	Client* findClientByUsername(const std::string &username);
 	/**
 	 *	@brief Just an utility function to send a message to the client.
 	 */
