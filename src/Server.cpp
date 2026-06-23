@@ -12,6 +12,7 @@
 
 #include "Server.hpp"
 #include "Channel.hpp"
+#include "utils.hpp"
 #include <unistd.h>
 #include <cstring>
 #include <string>
@@ -248,6 +249,11 @@ void Server::handlePass(Client& client, const std::string& param) {
 }
 
 void Server::handleNickname(Client& client, const std::string& param) {
+	if (findClient(param)) {
+		sendToClient(client, ":ircserv 433 " + (client.getNickname().empty() ? "*" : client.getNickname()) +
+								 " " + param + IRC::toString(IRC::ERR_NICKNAMEINUSE));
+		return;
+	}
 	client.setNickname(param);
 	if (!client.getUsername().empty() && !client.isRegistered()) {
 		client.setRegistered(true);
