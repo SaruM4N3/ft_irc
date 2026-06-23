@@ -38,7 +38,7 @@ This will produce the `ircserv` executable. Other available Makefile rules: `all
 ./ircserv 4242 mypassword
 ```
 
-Then connect with your IRC client of choice (e.g., irssi, WeeChat, HexChat) to `127.0.0.1` on port `6667` using the password `mypassword`.
+Then connect with your IRC client of choice (e.g., irssi, WeeChat, HexChat) to `127.0.0.1` on port `4242` using the password `mypassword`.
 
 ### Testing with nc
 

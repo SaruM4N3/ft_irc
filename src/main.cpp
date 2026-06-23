@@ -6,7 +6,7 @@
 /*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/14 14:32:20 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/03 19:21:00 by vaamonch         ###   ########.fr       */
+/*   Updated: 2026/06/23 20:36:52 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 	// only for testing, remove this part
 	if (argc == 1) {
 		try {
-			Server server(6667, "pass");
+			Server server(4242, "pass");
 			server.update();
 		} catch (const std::exception& e) {
 			std::cerr << "Error: " << e.what() << std::endl;
