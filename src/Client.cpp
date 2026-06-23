@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/14 14:33:19 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/09 06:20:37 by zsonie           ###   ########.fr       */
+/*   Updated: 2026/06/23 20:44:17 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 // constructor/destructor
 Client::Client(int fd, struct sockaddr_in addr)
 	: _fd(fd), _addr(addr), _authenticated(false), _registered(false) {
+	(void)_addr;
 	LOG_D("Client Constructor");
 }
 Client::~Client() { LOG_D("Client Destructor"); }
