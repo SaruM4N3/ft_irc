@@ -3,14 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/19 17:51:15 by zsonie            #+#    #+#             */
-/*   Updated: 2026/04/23 17:06:06 by zsonie           ###   ########.fr       */
+/*   Created: 2026/06/09 06:17:53 by zsonie            #+#    #+#             */
+/*   Updated: 2026/06/20 01:43:37 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include "Channel.hpp"
 #include <unistd.h>
 #include <cstring>
 #include <string>
@@ -22,6 +23,17 @@ Server::Server(int port, const std::string& password)
 	: _port(port), _password(password), _serverFd(-1), _epFd(-1) {
 	LOG_I("Constructor: Server");
 	LOG_D("Port: " + toString(_port) + " Password: " + _password);
+	_cmdHandlers["PASS"]    = &Server::handlePass;
+    _cmdHandlers["NICK"]    = &Server::handleNickname;
+    _cmdHandlers["USER"]    = &Server::handleUsername;
+    _cmdHandlers["JOIN"]    = &Server::handleChannel;
+    _cmdHandlers["PRIVMSG"] = &Server::handleCom;
+    _cmdHandlers["PART"]    = &Server::handlePart;
+    _cmdHandlers["INVITE"]  = &Server::handleInvite;
+    _cmdHandlers["KICK"]    = &Server::handleKick;
+    _cmdHandlers["TOPIC"]   = &Server::handleTopic;
+    _cmdHandlers["MODE"]    = &Server::handleMode;
+	_cmdHandlers["QUIT"]    = &Server::handleQuitWrapper;
 	init();
 }
 
@@ -56,7 +68,7 @@ void Server::init() {
 								 std::string(std::strerror(errno)));
 
 	// Bind
-	struct sockaddr_in addr;
+	struct sockaddr_in addr = {};
 	socklen_t socklength = sizeof(addr);
 	addr.sin_addr.s_addr = INADDR_ANY;
 	addr.sin_family = AF_INET;
@@ -75,9 +87,10 @@ void Server::init() {
 	if (_epFd == -1)
 		throw std::runtime_error("epoll: " + std::string(std::strerror(errno)));
 	epollAdd(_serverFd, EPOLLIN);
+		
 }
-
 void Server::update() {
+
 	struct epoll_event events[MAX_EVENTS];
 
 	LOG_I("Server is running");
@@ -86,16 +99,23 @@ void Server::update() {
 		if (n == -1)
 			throw std::runtime_error("epoll_wait: " +
 									 std::string(strerror(errno)));
-
 		for (int i = 0; i < n; i++) {
 			int fd = events[i].data.fd;
-
+	
 			if (events[i].events & (EPOLLERR | EPOLLHUP))
+			{
 				removeClient(fd);
-			else if (fd == _serverFd)
+				continue;
+			}
+			if (fd == _serverFd)
+			{
 				acceptClient();
-			else if (events[i].events & EPOLLIN)
+				continue;	
+			}
+			if (events[i].events & EPOLLIN)
 				handleClient(fd);
+			if (events[i].events & EPOLLOUT && _clientMap.count(fd))
+				flushClient(*_clientMap[fd]);
 		}
 	}
 }
@@ -110,6 +130,15 @@ void Server::epollAdd(int fd, uint32_t events) {
 	ev.data.fd = fd;
 	if (epoll_ctl(_epFd, EPOLL_CTL_ADD, fd, &ev) == -1)
 		throw std::runtime_error("epoll_ctl ADD: " +
+								 std::string(strerror(errno)));
+}
+
+void Server::epollMod(int fd, uint32_t events) {
+	struct epoll_event ev;
+	ev.events = events;
+	ev.data.fd = fd;
+	if (epoll_ctl(_epFd, EPOLL_CTL_MOD, fd, &ev) == -1)
+		throw std::runtime_error("epoll_ctl MOD: " +
 								 std::string(strerror(errno)));
 }
 
@@ -150,6 +179,17 @@ void Server::handleClient(int fd) {
 	LOG_D("Received data from fd[" + toString(fd) + "]");
 }
 
+// Flushes _outBuffer. If data remains (!_outBuffer.empty()), enables EPOLLOUT so epoll
+// notifies us when the socket is ready to write again.
+void Server::flushClient(Client& client)
+{
+	client.flushOutBuffer();
+	if (client.isWaiting())
+		epollMod(client.getFd(), EPOLLIN | EPOLLOUT);
+	else
+		epollMod(client.getFd(), EPOLLIN);
+}
+
 void Server::removeClient(int fd) {
 	epollDel(fd);
 	close(fd);
@@ -173,18 +213,23 @@ void Server::processMessage(Client& client, const std::string& msg) {
 	size_t spacePos = msg.find(' ');
 	if (spacePos != std::string::npos) params = msg.substr(spacePos + 1);
 
-	// handleCmds
 	LOG_I("CMD=[" + cmd + "] PARAMS=[" + params + "]");
-	if (cmd == "PASS")
-		handlePass(client, params);
-	else if (!client.isAuthenticated()) {
+
+	if (!client.isAuthenticated() && cmd != "PASS") {
 		sendToClient(client,
 					 "Error: You must send PASS before any other actions\r\n");
 		return;
-	} else if (cmd == "NICK")
-		handleNickname(client, params);
-	else if (cmd == "USER")
-		handleUsername(client, params);
+	}
+
+	std::map<std::string, CmdHandler>::iterator it = _cmdHandlers.find(cmd);
+	if (it != _cmdHandlers.end()) {
+		(this->*(it->second))(client, params);
+	}
+}
+
+void Server::handleQuitWrapper(Client &client, const std::string &param) {
+	(void)param;
+	handleQuit(client);
 }
 
 void Server::handlePass(Client& client, const std::string& param) {
@@ -193,7 +238,7 @@ void Server::handlePass(Client& client, const std::string& param) {
 		LOG_W("Client on fd[" + toString(client.getFd()) +
 			  "]: Connected succesfully");
 	} else {
-		sendToClient(client, "Wrong password\r\n");
+		send(client.getFd(), "Wrong password\r\n", 16, 0);
 		LOG_W("Client on fd[" + toString(client.getFd()) +
 			  "]: Failed to connect");
 		LOG_E("Removing client");
@@ -204,7 +249,7 @@ void Server::handlePass(Client& client, const std::string& param) {
 
 void Server::handleNickname(Client& client, const std::string& param) {
 	client.setNickname(param);
-	if (!client.getUsername().empty()) {
+	if (!client.getUsername().empty() && !client.isRegistered()) {
 		client.setRegistered(true);
 		sendToClient(client, ":ircserv 001 " + client.getNickname() +
 								 " :Welcome to the IRC server\r\n");
@@ -212,17 +257,28 @@ void Server::handleNickname(Client& client, const std::string& param) {
 }
 
 void Server::handleUsername(Client& client, const std::string& param) {
-	client.setUsername(param);
-	if (!client.getNickname().empty()) {
+	std::string username = param.substr(0, param.find(' '));
+	client.setUsername(username);
+	if (!client.getNickname().empty() && !client.isRegistered()) {
 		client.setRegistered(true);
 		sendToClient(client, ":ircserv 001 " + client.getNickname() +
 								 " :Welcome to the IRC server\r\n");
 	}
 }
 
+
 /////////////////////////////////////////////////////////////////////////////////
 //----------------------UTILS---------------------------------------------------/
 /////////////////////////////////////////////////////////////////////////////////
+
+Client* Server::findClient(const std::string &nick) {
+    for (std::map<int, Client*>::iterator it = _clientMap.begin();
+         it != _clientMap.end(); it++) {
+        if (it->second->getNickname() == nick)
+            return it->second;
+    }
+    return NULL;
+}
 
 void Server::setNonBlocking(int fd) {
 	LOG_D("Server: setNonblocking called");
@@ -236,5 +292,6 @@ void Server::setNonBlocking(int fd) {
 }
 
 void Server::sendToClient(Client& client, const std::string& msg) {
-	send(client.getFd(), msg.c_str(), msg.size(), 0);
+	client.appendToOutBuffer(msg);
+	flushClient(client);
 }

@@ -5,15 +5,25 @@ DIR_OBJ = obj/
 SRC_DIR = src/
 INC_DIR = inc/
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -MP
+CXXFLAGS = -Wall -Wextra -std=c++98 -MMD -MP -fPIE
 INCLUDES = -I $(INC_DIR)
 
 SRCS =
 SRCS_BONUS =
-include srcs.mk
+$(shell \
+    if [ ! -s srcs.mk ]; then \
+        touch srcs.mk; \
+        echo "# Auto-generated file, do not edit!" > srcs.mk; \
+        printf "SRCS += " >> srcs.mk; \
+        find src -type f -name "*.cpp" | sed "s/.*_bonus.cpp//" | sed '$$! s/$$/ \\/' >> srcs.mk; \
+    fi \
+)
+
+-include srcs.mk
 
 OBJS = ${patsubst %.cpp,$(DIR_OBJ)%.o, $(shell echo $(SRCS) | sed "s|$(SRC_DIR)||g")}
 DEPS = ${patsubst %.o,%.d, $(OBJS)}
+
 
 -include $(DEPS)
 
@@ -39,8 +49,11 @@ endif
 
 .SILENT:
 
+srcs.mk:
+	$(call gen_srcs_file)
+
 .PHONY: all
-all: gen_srcs
+all: gen_srcs FORCE
 all: $(NAME)
 
 test: export CFLAGS += -DUNITTEST=1
@@ -58,13 +71,14 @@ bonus: all
 ###########################################################
 
 define gen_srcs_file
+	$(shell touch srcs.mk)
 	$(shell echo "# Auto-generated file, do not edit!" > srcs.mk)
 	$(shell echo -n "SRCS += " >> srcs.mk)
 	$(shell find src -type f -name "*.cpp" | sed "s/.*_bonus.cpp//" | sed '$$ ! s/$$/ \\/' >> srcs.mk)
 endef
 
 .PHONY: gen_srcs
-gen_srcs:
+gen_srcs: FORCE
 	$(call gen_srcs_file)
 
 .PHONY: cachegrind
@@ -96,6 +110,7 @@ clean:
 .PHONY: fclean
 fclean: clean
 	rm -f $(NAME)
+	rm -f srcs.mk
 
 .PHONY: re
 re: fclean all
@@ -103,5 +118,7 @@ re: fclean all
 .PHONY: debug
 debug: CXXFLAGS += -DDEBUG_MODE=1
 debug: all
+
+FORCE:
 
 .DEFAULT_GOAL = all

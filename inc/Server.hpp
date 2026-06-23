@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:20 by zsonie            #+#    #+#             */
-/*   Updated: 2026/04/23 17:17:16 by zsonie           ###   ########.fr       */
+/*   Updated: 2026/06/20 01:40:30 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,12 @@
 
 // INC
 #include "Client.hpp"
+#include "Channel.hpp"
 #include <map>
 #include <netinet/in.h>
 #include <string>
 #include <sys/epoll.h>
+
 
 // LIMIT
 #ifndef MAX_EVENTS
@@ -45,11 +47,15 @@ class Server {
 	//----------------------EPOLL---------------------------------------------------/
 	/////////////////////////////////////////////////////////////////////////////////
 	/**
-	 *	@brief Ask kernel to watch this fd.
+	 *	@brief watch this fd.
 	 */
 	void epollAdd(int fd, uint32_t events);
 	/**
-	 *	@brief Ask kernel to stop watching this fd.
+	 *	@brief modify watched events by an fd.
+	 */
+	void epollMod(int fd, uint32_t events);
+	/**
+	 *	@brief stop watching this fd.
 	 */
 	void epollDel(int fd);
 
@@ -66,9 +72,14 @@ class Server {
 	 */
 	void handleClient(int fd);
 	/**
+	 *	@brief Flush this client buffer.
+	 */
+	void flushClient(Client& client);
+	/**
 	 *	@brief Clean everything related to this client.
 	 */
 	void removeClient(int fd);
+
 
 	/////////////////////////////////////////////////////////////////////////////////
 	//----------------------CMDS----------------------------------------------------/
@@ -85,7 +96,6 @@ class Server {
 	void processMessage(Client& client, const std::string& message);
 	/**
 	 *	@brief Handle the password of the client.
-
 	 *	This step is the first one called in processMessage function.
 	 *	Client have to input the correct password or he will get kicked of the
 	 server.
@@ -95,7 +105,7 @@ class Server {
 	 *	@brief Handle the Nickname of the client.
 	 *	This step is the 2nd one called in processMessage function.
 	 *	Client Should have username and nickname to get registered and be able
-	 * to interact with the server.
+	 *  to interact with the server.
 	 */
 	void handleNickname(Client& client, const std::string& param);
 	/**
@@ -105,14 +115,61 @@ class Server {
 	 * to interact with the server.
 	 */
 	void handleUsername(Client& client, const std::string& param);
+	/**
+	 *@brief Handle the joining of a channel.
+	 *	This step come after client is identified with USER and NICK.
+	 *	Client Should have username and nickname to get registered and be able
+	 *  to interact with the channel.
+	 */
+	void handleChannel(Client& client, const std::string& param);
+	/**
+	 *@brief Handle channel and private communication.
+	 *  if param == channelName => broadcast to all members of channelName
+	 *  if param == NICK => send to this USER
+	*/
+	void handleCom(Client &client, const std::string& param);
+	/**
+	 *@brief Handle the parting from a channel. 
+	*/
+ 	void handlePart(Client &client, const std::string &param);
+	/**
+	 *@brief Handle the inviting to a channel. 
+	*/
+	void handleInvite(Client &client, const std::string &param);
+	/**
+	 *@brief Handle the kicking from a channel. 
+	*/
+	void handleKick(Client &client, const std::string &param);
+	/**
+	 *@brief Handle the topic of a channel.
+	 *	if param == NULL => display current topic to client
+	 *	if param != NULL => set topic as param if possible
+	*/
+	void handleTopic(Client &client, const std::string &param);
+	/**
+	 *@brief Handle channel status & settings.
+	*/
+	void handleMode(Client &client, const std::string &param);
 
+	void handleQuit(Client &client);
+	void handlePing(Client &client, const std::string &param);
+	
+	void handleQuitWrapper(Client &client, const std::string &param);
+	typedef void (Server::*CmdHandler)(Client&, const std::string&);
+
+	
 	/////////////////////////////////////////////////////////////////////////////////
 	//----------------------UTILS---------------------------------------------------/
 	/////////////////////////////////////////////////////////////////////////////////
 	/**
+	 * @brief utility function that loop through _clientMap to find a client
+	 */
+	Client* findClient(const std::string &nick);
+	/**
 	 *	@brief Just an utility function to send a message to the client.
 	 */
 	void sendToClient(Client& client, const std::string& msg);
+
 	/**
 	 *	@brief Add a flag O_NONBLOCK to already existing flags.
 	 *	It's used to cahnge filedescriptors to avoid I/O calls to wait for data.
@@ -124,11 +181,13 @@ class Server {
 	//----------------------VARS----------------------------------------------------/
 	/////////////////////////////////////////////////////////////////////////////////
 
-	int _port;							///< TCP port the server's gonna listen
-	std::string _password;				///< Password of the server
-	int _serverFd;						///< Listening fd
-	int _epFd;							///< Epoll fd
-	std::map<int, Client*> _clientMap;	///< Client map
+	int _port;										///< TCP port the server's gonna listen
+	std::string _password;							///< Password of the server
+	int _serverFd;									///< Listening fd
+	int _epFd;										///< Epoll fd
+	std::map<int, Client* > _clientMap;				///< Client map
+	std::map<std::string, Channel > _channelList; 	///< List of Channel in server
+	std::map<std::string, CmdHandler> _cmdHandlers;	///< Dispatch table
 };
 
 #endif
