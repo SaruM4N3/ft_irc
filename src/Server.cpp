@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
+/*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 06:17:53 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/20 01:43:37 by vaamonch         ###   ########.fr       */
+/*   Updated: 2026/06/23 03:11:43 by zsonie           ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -249,7 +249,7 @@ void Server::handlePass(Client& client, const std::string& param) {
 }
 
 void Server::handleNickname(Client& client, const std::string& param) {
-	if (findClient(param)) {
+	if (findClientByNickname(param)) {
 		sendToClient(client, ":ircserv 433 " + (client.getNickname().empty() ? "*" : client.getNickname()) +
 								 " " + param + IRC::toString(IRC::ERR_NICKNAMEINUSE));
 		return;
@@ -264,6 +264,11 @@ void Server::handleNickname(Client& client, const std::string& param) {
 
 void Server::handleUsername(Client& client, const std::string& param) {
 	std::string username = param.substr(0, param.find(' '));
+	if (findClientByUsername(username)) {
+		sendToClient(client, ":ircserv 433 " + (client.getUsername().empty() ? "*" : client.getUsername()) +
+								 " " + param + IRC::toString(IRC::ERR_NICKNAMEINUSE));
+		return;
+	}
 	client.setUsername(username);
 	if (!client.getNickname().empty() && !client.isRegistered()) {
 		client.setRegistered(true);
@@ -277,10 +282,19 @@ void Server::handleUsername(Client& client, const std::string& param) {
 //----------------------UTILS---------------------------------------------------/
 /////////////////////////////////////////////////////////////////////////////////
 
-Client* Server::findClient(const std::string &nick) {
+Client* Server::findClientByNickname(const std::string &nickname) {
     for (std::map<int, Client*>::iterator it = _clientMap.begin();
          it != _clientMap.end(); it++) {
-        if (it->second->getNickname() == nick)
+        if (it->second->getNickname() == nickname)
+            return it->second;
+    }
+    return NULL;
+}
+
+Client* Server::findClientByUsername(const std::string &username) {
+    for (std::map<int, Client*>::iterator it = _clientMap.begin();
+         it != _clientMap.end(); it++) {
+        if (it->second->getUsername() == username)
             return it->second;
     }
     return NULL;
