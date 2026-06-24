@@ -17,7 +17,13 @@
 #include <cstring>
 #include <string>
 #include <fcntl.h>
+#include <csignal>
 #include "Debug.hpp"
+
+namespace {
+	volatile sig_atomic_t g_running = 1;
+	void handleSigint(int) { g_running = 0; }
+}
 
 //--------------------Constructor/Destructor---------------------------
 Server::Server(int port, const std::string& password)
@@ -88,18 +94,22 @@ void Server::init() {
 	if (_epFd == -1)
 		throw std::runtime_error("epoll: " + std::string(std::strerror(errno)));
 	epollAdd(_serverFd, EPOLLIN);
-		
+
+	signal(SIGINT, handleSigint);
 }
 void Server::update() {
 
 	struct epoll_event events[MAX_EVENTS];
 
 	LOG_I("Server is running");
-	while (true) {
+	while (g_running) {
 		int n = epoll_wait(_epFd, events, MAX_EVENTS, -1);
-		if (n == -1)
+		if (n == -1) {
+			if (errno == EINTR)
+				continue;
 			throw std::runtime_error("epoll_wait: " +
 									 std::string(strerror(errno)));
+		}
 		for (int i = 0; i < n; i++) {
 			int fd = events[i].data.fd;
 	
@@ -175,8 +185,26 @@ void Server::handleClient(int fd) {
 	Client* client = _clientMap[fd];
 	client->appendToBuffer(std::string(buf, bytes));
 
-	while (_clientMap.count(fd) && client->isMessageReceived())
-		processMessage(*client, client->extractMessage());
+	while (_clientMap.count(fd)) {
+		if (client->isMessageReceived()) {
+			if (client->nextLineFits(MAX_LINE_LEN)) {
+				processMessage(*client, client->extractMessage());
+				continue;
+			}
+			if (client->trySplitOversizedMessage(MAX_LINE_LEN))
+				continue;
+			processMessage(*client, client->extractMessage());
+			continue;
+		}
+		if (client->inBufferSize() <= MAX_LINE_LEN)
+			break;
+		if (client->trySplitOversizedMessage(MAX_LINE_LEN))
+			continue;
+		LOG_W("Client fd[" + toString(fd) + "] sent an oversized line, disconnecting");
+		sendToClient(*client, "ERROR :Closing Link: line too long\r\n");
+		removeClient(fd);
+		return;
+	}
 	LOG_D("Received data from fd[" + toString(fd) + "]");
 }
 
@@ -239,7 +267,7 @@ void Server::handlePass(Client& client, const std::string& param) {
 		LOG_W("Client on fd[" + toString(client.getFd()) +
 			  "]: Connected succesfully");
 	} else {
-		send(client.getFd(), "Wrong password\r\n", 16, 0);
+		sendToClient(client, "Wrong password\r\n");
 		LOG_W("Client on fd[" + toString(client.getFd()) +
 			  "]: Failed to connect");
 		LOG_E("Removing client");
@@ -249,7 +277,7 @@ void Server::handlePass(Client& client, const std::string& param) {
 }
 
 void Server::handleNickname(Client& client, const std::string& param) {
-	if (findClient(param)) {
+	if (param != client.getNickname() && findClient(param)) {
 		sendToClient(client, ":ircserv 433 " + (client.getNickname().empty() ? "*" : client.getNickname()) +
 								 " " + param + IRC::toString(IRC::ERR_NICKNAMEINUSE));
 		return;
@@ -288,11 +316,7 @@ Client* Server::findClient(const std::string &nickname) {
 
 void Server::setNonBlocking(int fd) {
 	LOG_D("Server: setNonblocking called");
-	int flags = fcntl(fd, F_GETFL, 0);
-	if (flags == -1)
-		throw std::runtime_error("fcntl F_GETFL: " +
-								 std::string(strerror(errno)));
-	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
+	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
 		throw std::runtime_error("fcntl F_SETFL: " +
 								 std::string(strerror(errno)));
 }

@@ -27,6 +27,10 @@
 #define MAX_EVENTS 64
 #endif
 
+#ifndef MAX_LINE_LEN
+#define MAX_LINE_LEN 512
+#endif
+
 class Server {
    public:
 	Server(int port, const std::string& password);
