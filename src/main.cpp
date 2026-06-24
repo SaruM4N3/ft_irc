@@ -12,9 +12,11 @@
 
 #include "Server.hpp"
 #include <cstdlib>
+#include <csignal>
 #include <iostream>
 
 int main(int argc, char** argv) {
+	signal(SIGPIPE, SIG_IGN);
 	if (argc != 3) {
 		std::cerr << "Usage: ./ircserv <port> <password>" << std::endl;
 		return 1;
