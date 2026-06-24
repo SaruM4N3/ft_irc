@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "utils.hpp"
+#include <sstream>
 
 void Server::handleTopic(Client &client, const std::string &param) {
 
