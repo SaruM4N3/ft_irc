@@ -308,7 +308,7 @@ namespace IRC {
 			case ERR_FILEERROR:         return ":ERR_FILEERROR\r\n";
 			case ERR_NONICKNAMEGIVEN:   return ":ERR_NONICKNAMEGIVEN\r\n";
 			case ERR_ERRONEUSNICKNAME:  return ":ERR_ERRONEUSNICKNAME\r\n";
-			case ERR_NICKNAMEINUSE:     return ":ERR_NICKNAMEINUSE\r\n";
+			case ERR_NICKNAMEINUSE:     return " :Nickname is already in use\r\n";
 			case ERR_NICKCOLLISION:     return ":ERR_NICKCOLLISION\r\n";
 			case ERR_UNAVAILRESOURCE:   return ":ERR_UNAVAILRESOURCE\r\n";
 			case ERR_USERNOTINCHANNEL:  return " :User not on that channel\r\n";
