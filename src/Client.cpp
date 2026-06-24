@@ -41,6 +41,40 @@ bool Client::isMessageReceived() const {
 bool Client::isAuthenticated() const { return _authenticated; }
 bool Client::isRegistered() const { return _registered; }
 bool Client::isWaiting() const { return !_outBuffer.empty(); }
+size_t Client::inBufferSize() const { return _inBuffer.size(); }
+
+bool Client::trySplitOversizedMessage(size_t maxLineLen) {
+	static const std::string prefixWord = "PRIVMSG ";
+
+	if (_inBuffer.compare(0, prefixWord.size(), prefixWord) != 0)
+		return false;
+
+	size_t targetEnd = _inBuffer.find(' ', prefixWord.size());
+	if (targetEnd == std::string::npos)
+		return false;
+	if (_inBuffer.size() <= targetEnd + 1 || _inBuffer[targetEnd + 1] != ':')
+		return false;
+
+	size_t prefixLen = targetEnd + 2;
+	if (prefixLen + 2 >= maxLineLen)
+		return false;
+
+	size_t chunkLen = maxLineLen - prefixLen - 2;
+	if (_inBuffer.size() - prefixLen < chunkLen)
+		return false;
+
+	std::string prefix = _inBuffer.substr(0, prefixLen);
+	std::string chunk  = _inBuffer.substr(prefixLen, chunkLen);
+
+	_inBuffer.erase(prefixLen, chunkLen);
+	_inBuffer.insert(0, prefix + chunk + "\r\n");
+	return true;
+}
+
+bool Client::nextLineFits(size_t maxLineLen) const {
+	size_t pos = _inBuffer.find("\r\n");
+	return (pos != std::string::npos && pos + 2 <= maxLineLen);
+}
 
 // set
 void Client::setNickname(std::string nick) { _nick = nick; }

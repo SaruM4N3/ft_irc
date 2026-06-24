@@ -27,6 +27,12 @@ class Client {
 	void appendToBuffer(const std::string& data);
 	void appendToOutBuffer(const std::string& data);
 	std::string extractMessage();
+	/**
+	 *	@brief Cuts a maxLineLen-sized fragment off an oversized PRIVMSG
+	 *	and re-injects it as its own complete message.
+	 */
+	bool trySplitOversizedMessage(size_t maxLineLen);
+	bool nextLineFits(size_t maxLineLen) const;
 
 	// get
 	int getFd() const;
@@ -45,6 +51,7 @@ class Client {
 	bool isRegistered() const;
 	bool isWaiting() const;
 	void flushOutBuffer();
+	size_t inBufferSize() const;
 
    private:
 	int _fd;
