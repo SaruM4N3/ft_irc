@@ -26,12 +26,8 @@ class Channel {
         bool    isEmpty() const;
         void    OpPrivilege(std::string nickname, bool status);
 
-        // Broadcast
-        /** @brief send message to Channel */
-        void    broadcast(const std::string &msg);
-        void    broadcastE(const std::string &msg, Client* client);
-
         // Getters
+        const std::map<Client*, bool> &getMembers()      const;
         const std::string           &getName()          const;
         const std::string           &getTopic()         const;
         const std::string           &getTopicSetter()   const;

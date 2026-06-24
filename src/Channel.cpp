@@ -61,15 +61,6 @@ bool    Channel::isOperator(Client *client) const {
     return (it->second);
 }
 
-// Client* Server::findClient(const std::string &nick) {
-//     for (std::map<int, Client*>::iterator it = _clientMap.begin();
-//          it != _clientMap.end(); it++) {
-//         if (it->second->getNickname() == nick)
-//             return it->second;
-//     }
-//     return NULL;
-// }
-
 void	Channel::OpPrivilege(std::string nickname, bool status)
 {
 	std::map<Client*, bool>::iterator it;
@@ -85,22 +76,11 @@ void	Channel::OpPrivilege(std::string nickname, bool status)
 }
 
 
-// --------------------------- BROADCAST ------------------------------------------
-
-void Channel::broadcast(const std::string &msg){
-    for (std::map<Client*, bool>::const_iterator it = _members.begin(); it != _members.end(); it++){
-        ::send(it->first->getFd(), msg.c_str(), msg.size(), 0);
-    }
-}
-
-void Channel::broadcastE(const std::string &msg, Client* client){
-    for (std::map<Client*, bool>::const_iterator it = _members.begin(); it != _members.end(); it++){
-        if (it->first->getNickname() != client->getNickname())
-            ::send(it->first->getFd(), msg.c_str(), msg.size(), 0);
-    }
-}
-
 // --------------------------- GETTERS ------------------------------------------
+
+const std::map<Client*, bool> &Channel::getMembers() const{
+    return(this->_members);
+}
 
 const std::string   &Channel::getName()     const{
     return(this->_name);

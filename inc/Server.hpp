@@ -176,6 +176,12 @@ class Server {
 	void sendToClient(Client& client, const std::string& msg);
 
 	/**
+	 *	@brief Send a message to every member of a channel, except exclude.
+	 */
+	void broadcastToChannel(Channel& channel, const std::string& msg,
+							 Client* exclude = NULL);
+
+	/**
 	 *	@brief Add a flag O_NONBLOCK to already existing flags.
 	 *	It's used to cahnge filedescriptors to avoid I/O calls to wait for data.
 	 *	Instead it's going to return immediatly.

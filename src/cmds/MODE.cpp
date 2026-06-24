@@ -98,7 +98,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 			else
 			{
 				c.setInviteOnly(true);
-				c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +i " + arg + "\r\n");
+				broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +i " + arg + "\r\n");
 			}
 		}
 		else
@@ -108,7 +108,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 			else
 			{
 				c.setInviteOnly(false);
-				c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -i " + arg + "\r\n");
+				broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -i " + arg + "\r\n");
 			}
 		}
 		break;
@@ -121,7 +121,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 			else
 			{
 				c.setTopicLocked(true);
-				c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +t " + arg + "\r\n");
+				broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +t " + arg + "\r\n");
 			}
 		}
 		else
@@ -131,7 +131,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 			else
 			{
 				c.setTopicLocked(false);
-				c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -t " + arg + "\r\n");
+				broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -t " + arg + "\r\n");
 			}
 		}
 		break;
@@ -145,12 +145,12 @@ void	Server::handleMode(Client &client, const std::string &param)
 				break;
 			}
 			c.setPassword(arg);
-			c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +k " + arg + "\r\n");
+			broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +k " + arg + "\r\n");
 		}
 		else
 		{
 			c.setPassword("");
-			c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -k " + arg + "\r\n");
+			broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -k " + arg + "\r\n");
 		}
 		break;
 
@@ -175,7 +175,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 				break;
 			}
 			c.OpPrivilege(arg, 1);
-			c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +o " + arg + "\r\n");
+			broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +o " + arg + "\r\n");
 		}
 		else
 		{
@@ -185,7 +185,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 				break;
 			}
 			c.OpPrivilege(arg, 0);
-			c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -o " + arg + "\r\n");
+			broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -o " + arg + "\r\n");
 		}
 		break;
 
@@ -193,12 +193,11 @@ void	Server::handleMode(Client &client, const std::string &param)
 		if (flag[0] == '+')
 		{
 			c.setUserLimit(std::atoi(arg.c_str()));
-			
 		}
 		else
 		{
 			c.setUserLimit(-1);
-			c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -l " + arg + "\r\n");
+			broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " -l " + arg + "\r\n");
 		}
 		break;
 

@@ -52,7 +52,7 @@ void	Server::handleKick(Client &client, const std::string &param)
         return ;	
 	}
 
-	c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost KICK " + channelName + " " + target + " :" + reason + "\r\n");
+	broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost KICK " + channelName + " " + target + " :" + reason + "\r\n");
 	c.removeMember(dest);
 	
 	if (c.isEmpty())

@@ -21,11 +21,12 @@ void Server::handleCom(Client &client, const std::string &param) {
     }
     
     if (target[0] == '#') {
-        if (!_channelList[target].hasMember(&client)) {
+        Channel &c = _channelList[target];
+        if (!c.hasMember(&client)) {
             sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + target + IRC::toString(IRC::ERR_NOTONCHANNEL));
             return ;
             }
-        _channelList[target].broadcastE(":" + client.getNickname() + "!" + client.getUsername() + "@localhost PRIVMSG " + target + " " + msg + "\r\n", &client);
+        broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost PRIVMSG " + target + " " + msg + "\r\n", &client);
 
         //*our absolute banger of a BOT
         if (msg.find("quoi") != std::string::npos){
@@ -33,7 +34,7 @@ void Server::handleCom(Client &client, const std::string &param) {
             while (_botmsg.find("quoi") != std::string::npos)
                 _botmsg.replace(_botmsg.find("quoi"), 4, "feur" );
 
-            _channelList[target].broadcast(":BOT!BOT@localhost PRIVMSG " + target + " " + _botmsg + "\r\n");
+            broadcastToChannel(c, ":BOT!BOT@localhost PRIVMSG " + target + " " + _botmsg + "\r\n");
         }
     }
     else {

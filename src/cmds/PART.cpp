@@ -29,7 +29,7 @@ void Server::handlePart(Client &client, const std::string &param) {
     c.removeMember(&client);
 
 	sendToClient(client, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost PART " + channelName + " :" + reason + "\r\n");
-    c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost PART " + channelName + " :" + reason + "\r\n");
+    broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost PART " + channelName + " :" + reason + "\r\n");
 
 
     if (c.isEmpty())

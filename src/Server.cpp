@@ -325,3 +325,12 @@ void Server::sendToClient(Client& client, const std::string& msg) {
 	client.appendToOutBuffer(msg);
 	flushClient(client);
 }
+
+void Server::broadcastToChannel(Channel& channel, const std::string& msg, Client* exclude) {
+	const std::map<Client*, bool>& members = channel.getMembers();
+	for (std::map<Client*, bool>::const_iterator it = members.begin();
+		 it != members.end(); ++it) {
+		if (it->first != exclude)
+			sendToClient(*it->first, msg);
+	}
+}

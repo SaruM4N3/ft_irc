@@ -46,5 +46,5 @@ void Server::handleTopic(Client &client, const std::string &param) {
         return ;
     }
     c.setTopic(newTopic, client.getNickname());
-    c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost TOPIC " + channelName + " :" + newTopic + "\r\n");
+    broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost TOPIC " + channelName + " :" + newTopic + "\r\n");
 }

@@ -58,7 +58,7 @@ void Server::handleChannel(Client& client, const std::string& param){
     Channel &c = _channelList[channelName];
 
     // broadcast JOIN to everyone
-    c.broadcast(":" + client.getNickname() + "!" + client.getUsername() + "@localhost JOIN :" + channelName + "\r\n");
+    broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost JOIN :" + channelName + "\r\n");
 
     // send 353/366 only to the joiner 353 = RPL_NAMREPLY 366 = RPL_ENDOFNAMES
     sendToClient(client, ":ircserv 353 " + client.getNickname() + " = " + channelName + " :" + c.getMemberList() + "\r\n");
