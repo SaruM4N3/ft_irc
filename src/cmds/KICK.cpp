@@ -15,7 +15,11 @@ void	Server::handleKick(Client &client, const std::string &param)
 	size_t reasonPos = rest.find(' ');
 	if (reasonPos != std::string::npos) {
 	    target = rest.substr(0, reasonPos);
-	    reason = rest.substr(reasonPos + 2);  // skip ' :'
+	    reason = rest.substr(reasonPos + 1);
+	    if (!reason.empty() && reason[0] == ':')
+	        reason = reason.substr(1);
+	    if (reason.empty())
+	        reason = "Kicked";
 	} else {
 	    target = rest;
 	    reason = "Kicked";  // default
