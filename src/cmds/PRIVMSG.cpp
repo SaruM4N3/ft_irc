@@ -21,7 +21,12 @@ void Server::handleCom(Client &client, const std::string &param) {
     }
     
     if (target[0] == '#') {
-        Channel &c = _channelList[target];
+        std::map<std::string, Channel>::iterator chanIt = _channelList.find(target);
+        if (chanIt == _channelList.end()) {
+            sendToClient(client, ":ircserv 403 " + client.getNickname() + " " + target + IRC::toString(IRC::ERR_NOSUCHCHANNEL));
+            return ;
+        }
+        Channel &c = chanIt->second;
         if (!c.hasMember(&client)) {
             sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + target + IRC::toString(IRC::ERR_NOTONCHANNEL));
             return ;
