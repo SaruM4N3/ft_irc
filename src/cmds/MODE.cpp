@@ -24,7 +24,7 @@ static void	parseParam(const std::string param, std::string& channelName, std::s
 
 	if (space[1] != space[0])
 	{
-		flag = param.substr(space[0] + 1, space[1]);
+		flag = param.substr(space[0] + 1, space[1] - space[0] - 1);
 		arg = param.substr(space[1] + 1);
 	}
 	else
@@ -139,7 +139,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 	case 2:	
 		if (flag[0] == '+')
 		{
-			if (!arg.c_str())
+			if (arg.empty())
 			{
 				sendToClient(client, "Missing key\r\n");
 				break;
@@ -193,6 +193,7 @@ void	Server::handleMode(Client &client, const std::string &param)
 		if (flag[0] == '+')
 		{
 			c.setUserLimit(std::atoi(arg.c_str()));
+			broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost " + "MODE " + c.getName() + " +l " + arg + "\r\n");
 		}
 		else
 		{
