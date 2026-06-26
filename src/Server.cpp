@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 06:17:53 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/23 15:41:28 by zsonie           ###   ########lyon.fr   */
+/*   Updated: 2026/06/26 20:13:27 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,7 +224,7 @@ void Server::removeClient(int fd) {
 	close(fd);
 	delete _clientMap[fd];
 	_clientMap.erase(fd);
-	LOG_D("Client disconnected: fd[" + toString(fd) + "]");
+	LOG_W("Client disconnected: fd[" + toString(fd) + "]");
 }
 
 /////////////////////////////////////////////////////////////////////////////////
