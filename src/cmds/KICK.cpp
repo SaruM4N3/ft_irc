@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   KICK.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 01:51:04 by zsonie            #+#    #+#             */
 /*   Updated: 2026/06/27 03:28:08 by vaamonch         ###   ########.fr       */

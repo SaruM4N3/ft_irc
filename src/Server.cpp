@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 06:17:53 by zsonie            #+#    #+#             */
 /*   Updated: 2026/06/27 03:02:31 by vaamonch         ###   ########.fr       */

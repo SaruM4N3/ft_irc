@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 01:50:30 by zsonie            #+#    #+#             */
 /*   Updated: 2026/06/27 02:42:25 by vaamonch         ###   ########.fr       */

@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   BOT.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 02:29:49 by vaamonch          #+#    #+#             */
 /*   Updated: 2026/06/27 03:27:05 by vaamonch         ###   ########.fr       */
