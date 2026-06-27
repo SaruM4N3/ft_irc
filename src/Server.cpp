@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 06:17:53 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/27 01:51:55 by zsonie           ###   ########lyon.fr   */
+/*   Updated: 2026/06/27 03:02:31 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ Server::Server(int port, const std::string& password)
     _cmdHandlers["TOPIC"]   = &Server::handleTopic;
     _cmdHandlers["MODE"]    = &Server::handleMode;
 	_cmdHandlers["QUIT"]    = &Server::handleQuitWrapper;
+	_cmdHandlers["BOT"]    	= &Server::handleBOT;
 	init();
 }
 
@@ -277,7 +278,7 @@ void Server::handlePass(Client& client, const std::string& param) {
 }
 
 void Server::handleNickname(Client& client, const std::string& param) {
-	if (param != client.getNickname() && findClient(param)) {
+	if (param != client.getNickname() && (findClient(param) || param == "BOT")) {
 		sendToClient(client, ":ircserv 433 " + (client.getNickname().empty() ? "*" : client.getNickname()) +
 								 " " + param + IRC::toString(IRC::ERR_NICKNAMEINUSE));
 		return;

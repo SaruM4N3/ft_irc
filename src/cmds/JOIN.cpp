@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   JOIN.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 01:50:57 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/27 01:50:58 by zsonie           ###   ########lyon.fr   */
+/*   Updated: 2026/06/27 03:10:12 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ void Server::handleChannel(Client& client, const std::string& param){
         sendToClient(client, ":ircserv 461 " + client.getNickname() + IRC::toString(IRC::ERR_NEEDMOREPARAMS));
 		return;
 	}
-	if (param[0] != '#' || param.size() < 2){
+	if (param[0] != '#' || param.size() < 1){
 		sendToClient(client, ":ircserv 476 " + client.getNickname() + " " + param + IRC::toString(IRC::ERR_BADCHANMASK));
 		return;
 	}
@@ -73,6 +73,9 @@ void Server::handleChannel(Client& client, const std::string& param){
     broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost JOIN :" + channelName + "\r\n");
 
     // send 353/366 only to the joiner 353 = RPL_NAMREPLY 366 = RPL_ENDOFNAMES
-    sendToClient(client, ":ircserv 353 " + client.getNickname() + " = " + channelName + " :" + c.getMemberList() + "\r\n");
+	if (c.getBOTStatus() == false)
+    	sendToClient(client, ":ircserv 353 " + client.getNickname() + " = " + channelName + " :" + c.getMemberList() + "\r\n");
+	else
+		sendToClient(client, ":ircserv 353 " + client.getNickname() + " = " + channelName + " :" + c.getMemberList() + " BOT" + "\r\n");
     sendToClient(client, ":ircserv 366 " + client.getNickname() + " " + channelName + " :End of NAMES list\r\n");
 }

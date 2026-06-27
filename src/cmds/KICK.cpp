@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   KICK.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 01:51:04 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/27 01:51:05 by zsonie           ###   ########lyon.fr   */
+/*   Updated: 2026/06/27 03:01:26 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,12 @@ void	Server::handleKick(Client &client, const std::string &param)
 		return ;
 	}
 
+	if (target == "BOT")
+	{
+		c.setBOTStatus(false);
+		broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost KICK " + channelName + " BOT :OVERRIDE / You are a machine" + "\r\n");
+		return ;
+	}
 	Client *dest = findClient(target);
 	if (!dest)
 	{

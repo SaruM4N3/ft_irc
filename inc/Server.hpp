@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/19 17:51:20 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/23 15:41:01 by zsonie           ###   ########lyon.fr   */
+/*   Updated: 2026/06/27 02:31:40 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,11 +156,13 @@ class Server {
 	void handleMode(Client &client, const std::string &param);
 
 	void handleQuit(Client &client);
-	void handlePing(Client &client, const std::string &param);
 	
 	void handleQuitWrapper(Client &client, const std::string &param);
 	typedef void (Server::*CmdHandler)(Client&, const std::string&);
+	
+	void handlePing(Client &client, const std::string &param);
 
+	void handleBOT(Client &client, const std::string &param);
 	
 	/////////////////////////////////////////////////////////////////////////////////
 	//----------------------UTILS---------------------------------------------------/

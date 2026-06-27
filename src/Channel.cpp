@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 01:51:36 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/27 01:51:37 by zsonie           ###   ########lyon.fr   */
+/*   Updated: 2026/06/27 02:42:49 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,8 @@ Channel::Channel(const std::string &name)
       _password(""),
       _inviteOnly(false),
       _topicLocked(true),
-      _userLimit(-1)
+      _userLimit(-1),
+      _BOTStatus(false)
 {}
 
 Channel::~Channel(){
@@ -140,6 +141,10 @@ std::string Channel::getMemberList() const {
     return list;
 }
 
+bool    Channel::getBOTStatus() const{
+    return (this->_BOTStatus);
+}
+
 // --------------------------- SETTERS ------------------------------------------
 
 void Channel::setName(const std::string &name){
@@ -161,6 +166,10 @@ void    Channel::setInviteOnly(bool val){
 }
 void    Channel::setTopicLocked(bool val){
     this->_topicLocked = val;
+}
+
+void    Channel::setBOTStatus(bool val){
+    this->_BOTStatus = val;
 }
 
 // --------------------------- INVITES ------------------------------------------

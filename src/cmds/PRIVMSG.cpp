@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   PRIVMSG.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 01:51:25 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/27 01:51:26 by zsonie           ###   ########lyon.fr   */
+/*   Updated: 2026/06/27 02:45:20 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ void Server::handleCom(Client &client, const std::string &param) {
         broadcastToChannel(c, ":" + client.getNickname() + "!" + client.getUsername() + "@localhost PRIVMSG " + target + " " + msg + "\r\n", &client);
 
         //*our absolute banger of a BOT
-        if (msg.find("quoi") != std::string::npos){
+        if (c.getBOTStatus() == true && msg.find("quoi") != std::string::npos){
             std::string _botmsg = msg;
             while (_botmsg.find("quoi") != std::string::npos)
                 _botmsg.replace(_botmsg.find("quoi"), 4, "feur" );

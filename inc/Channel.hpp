@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zsonie <zsonie@student.42lyon.fr>          +#+  +:+       +#+        */
+/*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 01:50:30 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/27 01:50:32 by zsonie           ###   ########lyon.fr   */
+/*   Updated: 2026/06/27 02:42:25 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@ class Channel {
         bool                         isInviteOnly()     const;
         bool                         isTopicLocked()    const;
         std::string                  getMemberList()    const;
+        bool                         getBOTStatus()     const;
 
         // Setters (called by MODE handler) 
 	    void    setTopic(const std::string &topic, const std::string &setter);
@@ -59,6 +60,7 @@ class Channel {
         void    setUserLimit(int limit);
         void    setInviteOnly(bool val);
         void    setTopicLocked(bool val);
+        void    setBOTStatus(bool val);
 
         // Invite list (for +i mode)
         void    addInvite(const std::string &nick);
@@ -77,6 +79,7 @@ class Channel {
         bool    _inviteOnly;
         bool    _topicLocked;
         int     _userLimit;
+        bool    _BOTStatus;
 };
 
 # endif

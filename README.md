@@ -94,10 +94,15 @@ telnet localhost 4242
 | `PART`   | Part from a channel                              |
 | `QUIT`   | Disconnect from the server                       |
 | `PING`   | Ping another user			                      |
+| `BOT`    | Add BOT to channel			                      |
 
 
 - File transfer (DCC)
 - IRC bot
+```
+/BOT <ChannelName>	// Add BOT to channel
+/kick BOT			// remove BOT from channel
+```
 
 ## Resources
 
