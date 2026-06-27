@@ -6,7 +6,7 @@
 /*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 02:29:49 by vaamonch          #+#    #+#             */
-/*   Updated: 2026/06/27 02:55:07 by vaamonch         ###   ########.fr       */
+/*   Updated: 2026/06/27 03:27:05 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,11 +37,18 @@ void	Server::handleBOT(Client &client, const std::string &param)
 
 	Channel &c = _channelList[channelName];
 
+	if (!c.hasMember(&client))
+	{
+		sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_NOSUCHCHANNEL));
+		return ;
+	}
+
 	if (!c.isOperator(&client))
 	{
 		sendToClient(client, ":ircserv 482 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_CHANOPRIVSNEEDED));
 		return ;
 	}
+	
 	if (c.getBOTStatus() == false)
 	{
 		c.setBOTStatus(true);

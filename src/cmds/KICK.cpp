@@ -6,7 +6,7 @@
 /*   By: vaamonch <vaamonch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 01:51:04 by zsonie            #+#    #+#             */
-/*   Updated: 2026/06/27 03:01:26 by vaamonch         ###   ########.fr       */
+/*   Updated: 2026/06/27 03:28:08 by vaamonch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,7 @@ void	Server::handleKick(Client &client, const std::string &param)
 		sendToClient(client, ":ircserv 442 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_NOSUCHCHANNEL));
 		return ;
 	}
+	
 	if (!c.isOperator(&client))
 	{
 		sendToClient(client, ":ircserv 482 " + client.getNickname() + " " + channelName + IRC::toString(IRC::ERR_CHANOPRIVSNEEDED));
